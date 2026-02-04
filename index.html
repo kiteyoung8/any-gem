@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>anyGem AI Core</title>
+    <title>anyGem AI : Mini Manus</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     
     <style>
-        /* 載入動畫 */
+        /* 自定義動畫：三個點跳動 */
         .loading-dots::after { content: '.'; animation: dots 1.5s infinite; }
         @keyframes dots { 0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; } }
-        /* 程式碼區塊樣式微調 */
-        .prose pre { background: #1a1b26 !important; border: 1px solid #414868; border-radius: 8px; }
-        /* 捲軸美化 */
+        
+        /* 程式碼區塊樣式優化 */
+        .prose pre { background: #1a1b26 !important; border: 1px solid #414868; border-radius: 8px; margin-top: 10px; }
+        
+        /* 捲軸美化 (讓深色模式更一致) */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -24,12 +26,12 @@
 </head>
 <body class="bg-[#0f172a] text-slate-300 h-screen flex flex-col font-sans selection:bg-cyan-500/30">
 
-    <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center sticky top-0 z-50 shadow-lg">
+    <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center sticky top-0 z-50 shadow-xl">
         <div class="flex items-center space-x-3">
             <div class="w-3 h-3 bg-cyan-500 rounded-full shadow-[0_0_10px_#22d3ee] animate-pulse"></div>
-            <span class="text-xl font-bold text-white tracking-tight">anyGem <span class="text-cyan-400">Live</span></span>
+            <span class="text-xl font-bold text-white tracking-tight">anyGem <span class="text-cyan-400">v4.0</span></span>
         </div>
-        <div class="text-xs text-slate-500 font-mono border border-slate-700 px-2 py-1 rounded bg-slate-900" id="session-display">
+        <div class="text-[10px] md:text-xs text-slate-500 font-mono border border-slate-700 px-2 py-1 rounded bg-slate-900" id="session-display">
             Connecting...
         </div>
     </header>
@@ -40,7 +42,7 @@
         <div class="max-w-4xl mx-auto flex gap-3">
             <input type="text" id="user-input" 
                    class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-3 focus:outline-none focus:border-cyan-500 text-white transition-all shadow-inner placeholder-slate-600" 
-                   placeholder="輸入指令或詢問技術問題..." autocomplete="off">
+                   placeholder="貼上網址開始閱讀，或輸入指令..." autocomplete="off">
             <button onclick="handleSend()" id="send-btn" 
                     class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[0_0_15px_rgba(8,145,178,0.4)] active:scale-95">
                 SEND
@@ -49,33 +51,36 @@
     </footer>
 
     <script>
-        // ✅ 這是你剛剛給我的網址，已經填好囉！
+        // ============================================
+        // ⚠️ 請務必替換成你的 GAS 部署網址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
+        // ============================================
 
         const chatWindow = document.getElementById('chat-window');
         const input = document.getElementById('user-input');
         const btn = document.getElementById('send-btn');
-        // 產生一個隨機的使用者 ID (Session ID)
+        // 產生 Session ID
         const sessId = "User_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         document.getElementById('session-display').innerText = `SESSION: ${sessId}`;
 
-        // 初始化歡迎訊息
+        // 開場白
         setTimeout(() => {
-            addMessage('ai', "你好！我是 **anyGem**。我已經連線到你的 Google 試算表大腦。\n\n請下指令，我們開始吧！");
+            addMessage('ai', "你好！我是 **anyGem v4.0**。\n我已經升級了 **Web Reader** 能力。\n\n試試看給我一個網址，例如：\n`總結這個網頁: https://openai.com`");
         }, 500);
 
         async function handleSend() {
             const text = input.value.trim();
             if (!text || btn.disabled) return;
 
-            // 1. 顯示使用者訊息
             addMessage('user', text);
             input.value = '';
             input.focus();
-            setLoading(true);
+
+            // 🕵️‍♂️ [v4.0 新功能] 偵測網址，改變 Loading 狀態
+            const hasUrl = text.toLowerCase().includes("http");
+            setLoading(true, hasUrl);
 
             try {
-                // 2. 發送請求到 GAS
                 const res = await fetch(GAS_URL, {
                     method: 'POST',
                     body: JSON.stringify({ message: text, session_id: sessId })
@@ -83,7 +88,6 @@
                 
                 const data = await res.json();
 
-                // 3. 處理回應
                 if (data.status === "success") {
                     addMessage('ai', data.reply);
                 } else {
@@ -91,7 +95,7 @@
                 }
             } catch (e) {
                 console.error(e);
-                addMessage('ai', "❌ **連線失敗**: 無法連接後端。\n請檢查 GAS 部署是否選擇「執行身分: 我」且「權限: 任何人」。");
+                addMessage('ai', "❌ **連線失敗**: 無法連接後端，請檢查 GAS 部署。");
             } finally {
                 setLoading(false);
             }
@@ -99,39 +103,52 @@
 
         function addMessage(role, text) {
             const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4 animate-[fadeIn_0.3s_ease-out]`;
             
             const bubble = document.createElement('div');
-            bubble.className = `max-w-[85%] md:max-w-[75%] p-4 rounded-2xl shadow-lg prose prose-invert ${
+            // 根據角色給予不同配色 (User: 漸層藍 / AI: 深灰藍)
+            bubble.className = `max-w-[90%] md:max-w-[80%] p-4 rounded-2xl shadow-lg prose prose-invert ${
                 role === 'user' 
                 ? 'bg-gradient-to-br from-cyan-900 to-blue-900 text-cyan-50 border border-cyan-700/50 rounded-br-none' 
                 : 'bg-slate-800 border border-slate-700 rounded-bl-none'
             }`;
 
-            // 使用 marked 解析 Markdown，並設定 target="_blank" 讓連結開新分頁
+            // Markdown 解析設定
             const parsedText = marked.parse(text);
             bubble.innerHTML = parsedText;
             
             div.appendChild(bubble);
             chatWindow.appendChild(div);
-            
-            // 自動捲動到底部
             chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
             
             // 程式碼高亮
             if (role === 'ai') hljs.highlightAll();
             
-            // 強制連結開新視窗
-            bubble.querySelectorAll('a').forEach(a => a.target = '_blank');
+            // 讓所有連結都在新視窗開啟
+            bubble.querySelectorAll('a').forEach(a => {
+                a.target = '_blank';
+                a.className = 'text-cyan-400 hover:text-cyan-300 underline';
+            });
         }
 
-        function setLoading(isLoading) {
+        // 🔄 [v4.0] 升級版 Loading 動畫
+        function setLoading(isLoading, isReadingUrl = false) {
             btn.disabled = isLoading;
             if (isLoading) {
                 const loader = document.createElement('div');
                 loader.id = 'loader';
                 loader.className = 'flex justify-start mb-4';
-                loader.innerHTML = '<div class="bg-slate-800/80 backdrop-blur border border-slate-700 p-3 rounded-2xl rounded-bl-none text-cyan-400 loading-dots font-mono text-sm shadow-md">Thinking</div>';
+                
+                // 如果有網址，顯示 "Browsing Link..."，否則顯示 "Thinking"
+                const statusText = isReadingUrl ? "Browsing Link" : "Thinking";
+                const icon = isReadingUrl ? "🌐" : "⚡";
+
+                loader.innerHTML = `
+                    <div class="bg-slate-800/80 backdrop-blur border border-slate-700 p-3 rounded-2xl rounded-bl-none text-cyan-400 font-mono text-sm shadow-md flex items-center gap-2">
+                        <span>${icon}</span>
+                        <span class="loading-dots">${statusText}</span>
+                    </div>`;
+                
                 chatWindow.appendChild(loader);
                 chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
             } else {
@@ -140,7 +157,7 @@
             }
         }
 
-        // 支援按 Enter 發送
+        // 按 Enter 發送
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
