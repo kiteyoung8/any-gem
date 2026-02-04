@@ -1,0 +1,45 @@
+# 動作名稱：自動部署 anyGem 到 GitHub Pages
+name: Deploy to GitHub Pages
+
+on:
+  # 當代碼推送到 main 分支時觸發
+  push:
+    branches: ["main"]
+
+  # 允許手動從 Actions 頁面觸發
+  workflow_dispatch:
+
+# 設定權限，允許此腳本修改 Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 確保同一時間只有一個部署任務在執行
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # 部署任務
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 這裡設定要上傳的資料夾，"." 代表目前根目錄的所有檔案
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
