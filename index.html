@@ -3,87 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>anyGem AI : Mini Manus</title>
+    <title>anyGem v6.0 : File Agent</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    
     <style>
-        /* 自定義動畫：三個點跳動 */
         .loading-dots::after { content: '.'; animation: dots 1.5s infinite; }
         @keyframes dots { 0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; } }
-        
-        /* 程式碼區塊樣式優化 */
-        .prose pre { background: #1a1b26 !important; border: 1px solid #414868; border-radius: 8px; margin-top: 10px; }
-        
-        /* 捲軸美化 (讓深色模式更一致) */
+        .prose pre { background: #1a1b26 !important; border-radius: 8px; margin-top: 10px; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="bg-[#0f172a] text-slate-300 h-screen flex flex-col font-sans selection:bg-cyan-500/30">
+<body class="bg-[#0f172a] text-slate-300 h-screen flex flex-col font-sans">
 
     <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center sticky top-0 z-50 shadow-xl">
         <div class="flex items-center space-x-3">
-            <div class="w-3 h-3 bg-cyan-500 rounded-full shadow-[0_0_10px_#22d3ee] animate-pulse"></div>
-            <span class="text-xl font-bold text-white tracking-tight">anyGem <span class="text-cyan-400">v4.0</span></span>
+            <div class="w-3 h-3 bg-purple-500 rounded-full shadow-[0_0_10px_#d8b4fe] animate-pulse"></div>
+            <span class="text-xl font-bold text-white tracking-tight">anyGem <span class="text-purple-400">File+</span></span>
         </div>
-        <div class="text-[10px] md:text-xs text-slate-500 font-mono border border-slate-700 px-2 py-1 rounded bg-slate-900" id="session-display">
-            Connecting...
-        </div>
+        <div class="text-[10px] md:text-xs text-slate-500 font-mono border border-slate-700 px-2 py-1 rounded bg-slate-900" id="session-display">...</div>
     </header>
 
     <main id="chat-window" class="flex-grow p-4 md:p-6 overflow-y-auto space-y-6 max-w-5xl mx-auto w-full scroll-smooth"></main>
 
+    <div id="file-status" class="hidden max-w-4xl mx-auto px-4 pb-2 text-xs text-cyan-400">
+        📎 已選擇檔案: <span id="filename-display"></span> (點擊 Send 上傳)
+    </div>
+
     <footer class="p-4 bg-[#1e293b] border-t border-slate-800">
-        <div class="max-w-4xl mx-auto flex gap-3">
+        <div class="max-w-4xl mx-auto flex gap-3 items-center">
+            
+            <label class="cursor-pointer bg-slate-700 hover:bg-slate-600 p-3 rounded-xl transition-all text-white flex items-center justify-center hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]">
+                <input type="file" id="file-upload" class="hidden" accept=".txt,.pdf,.doc,.docx,.jpg,.png">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                </svg>
+            </label>
+
             <input type="text" id="user-input" 
-                   class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-3 focus:outline-none focus:border-cyan-500 text-white transition-all shadow-inner placeholder-slate-600" 
-                   placeholder="貼上網址開始閱讀，或輸入指令..." autocomplete="off">
+                   class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-3 focus:outline-none focus:border-purple-500 text-white transition-all shadow-inner placeholder-slate-600" 
+                   placeholder="輸入訊息，或上傳檔案..." autocomplete="off">
+            
             <button onclick="handleSend()" id="send-btn" 
-                    class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-[0_0_15px_rgba(8,145,178,0.4)] active:scale-95">
+                    class="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                 SEND
             </button>
         </div>
     </footer>
 
     <script>
-        // ============================================
-        // ⚠️ 請務必替換成你的 GAS 部署網址
+        // ⚠️ 請填入你的 GAS 網址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        // ============================================
 
         const chatWindow = document.getElementById('chat-window');
         const input = document.getElementById('user-input');
         const btn = document.getElementById('send-btn');
-        // 產生 Session ID
+        const fileInput = document.getElementById('file-upload');
+        const fileStatus = document.getElementById('file-status');
+        const fileNameDisplay = document.getElementById('filename-display');
+        
         const sessId = "User_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         document.getElementById('session-display').innerText = `SESSION: ${sessId}`;
 
-        // 開場白
-        setTimeout(() => {
-            addMessage('ai', "你好！我是 **anyGem v4.0**。\n我已經升級了 **Web Reader** 能力。\n\n試試看給我一個網址，例如：\n`總結這個網頁: https://openai.com`");
-        }, 500);
+        // 當使用者選擇檔案時
+        let selectedFile = null;
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                fileStatus.classList.remove('hidden');
+                fileNameDisplay.innerText = selectedFile.name;
+                
+                // 如果是圖片或 PDF，提醒使用者要等一下
+                if (selectedFile.size > 5 * 1024 * 1024) {
+                    alert("⚠️ 檔案較大 (超過 5MB)，上傳與處理可能需要一段時間，請耐心等待。");
+                }
+            }
+        });
 
         async function handleSend() {
             const text = input.value.trim();
-            if (!text || btn.disabled) return;
+            // 如果沒有文字也沒有檔案，就不發送
+            if ((!text && !selectedFile) || btn.disabled) return;
 
-            addMessage('user', text);
+            // 顯示訊息
+            const displayMsg = selectedFile ? `[上傳檔案] ${selectedFile.name}\n${text}` : text;
+            addMessage('user', displayMsg);
+            
             input.value = '';
-            input.focus();
-
-            // 🕵️‍♂️ [v4.0 新功能] 偵測網址，改變 Loading 狀態
-            const hasUrl = text.toLowerCase().includes("http");
-            setLoading(true, hasUrl);
+            fileStatus.classList.add('hidden'); // 隱藏檔案狀態
+            setLoading(true, selectedFile ? "Uploading & Analyzing..." : "Thinking");
 
             try {
+                // 準備 Payload
+                let payload = { message: text, session_id: sessId };
+
+                // 如果有檔案，轉成 Base64
+                if (selectedFile) {
+                    const base64Data = await toBase64(selectedFile);
+                    payload.file_data = base64Data.split(',')[1]; // 去掉 data:application/pdf;base64, 前綴
+                    payload.file_name = selectedFile.name;
+                    payload.mime_type = selectedFile.type;
+                }
+
                 const res = await fetch(GAS_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ message: text, session_id: sessId })
+                    body: JSON.stringify(payload)
                 });
                 
                 const data = await res.json();
@@ -91,64 +118,49 @@
                 if (data.status === "success") {
                     addMessage('ai', data.reply);
                 } else {
-                    addMessage('ai', "⚠️ **系統錯誤**: " + (data.error || "未知原因"));
+                    addMessage('ai', "⚠️ 錯誤: " + (data.error || "未知原因"));
                 }
             } catch (e) {
                 console.error(e);
-                addMessage('ai', "❌ **連線失敗**: 無法連接後端，請檢查 GAS 部署。");
+                addMessage('ai', "❌ 連線失敗");
             } finally {
                 setLoading(false);
+                selectedFile = null; // 清除檔案選取
+                fileInput.value = ""; 
             }
+        }
+
+        // 工具：將檔案轉 Base64
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
         }
 
         function addMessage(role, text) {
             const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4 animate-[fadeIn_0.3s_ease-out]`;
-            
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
             const bubble = document.createElement('div');
-            // 根據角色給予不同配色 (User: 漸層藍 / AI: 深灰藍)
-            bubble.className = `max-w-[90%] md:max-w-[80%] p-4 rounded-2xl shadow-lg prose prose-invert ${
-                role === 'user' 
-                ? 'bg-gradient-to-br from-cyan-900 to-blue-900 text-cyan-50 border border-cyan-700/50 rounded-br-none' 
-                : 'bg-slate-800 border border-slate-700 rounded-bl-none'
+            bubble.className = `max-w-[85%] p-4 rounded-2xl shadow-lg prose prose-invert ${
+                role === 'user' ? 'bg-purple-900 text-purple-50' : 'bg-slate-800'
             }`;
-
-            // Markdown 解析設定
-            const parsedText = marked.parse(text);
-            bubble.innerHTML = parsedText;
-            
+            bubble.innerHTML = marked.parse(text);
             div.appendChild(bubble);
             chatWindow.appendChild(div);
             chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
-            
-            // 程式碼高亮
             if (role === 'ai') hljs.highlightAll();
-            
-            // 讓所有連結都在新視窗開啟
-            bubble.querySelectorAll('a').forEach(a => {
-                a.target = '_blank';
-                a.className = 'text-cyan-400 hover:text-cyan-300 underline';
-            });
         }
 
-        // 🔄 [v4.0] 升級版 Loading 動畫
-        function setLoading(isLoading, isReadingUrl = false) {
+        function setLoading(isLoading, text="Thinking") {
             btn.disabled = isLoading;
             if (isLoading) {
                 const loader = document.createElement('div');
                 loader.id = 'loader';
-                loader.className = 'flex justify-start mb-4';
-                
-                // 如果有網址，顯示 "Browsing Link..."，否則顯示 "Thinking"
-                const statusText = isReadingUrl ? "Browsing Link" : "Thinking";
-                const icon = isReadingUrl ? "🌐" : "⚡";
-
-                loader.innerHTML = `
-                    <div class="bg-slate-800/80 backdrop-blur border border-slate-700 p-3 rounded-2xl rounded-bl-none text-cyan-400 font-mono text-sm shadow-md flex items-center gap-2">
-                        <span>${icon}</span>
-                        <span class="loading-dots">${statusText}</span>
-                    </div>`;
-                
+                loader.className = 'flex justify-start mb-4 text-purple-400 font-mono text-sm';
+                loader.innerHTML = `⚡ ${text} <span class="loading-dots"></span>`;
                 chatWindow.appendChild(loader);
                 chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
             } else {
@@ -156,14 +168,6 @@
                 if (loader) loader.remove();
             }
         }
-
-        // 按 Enter 發送
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-            }
-        });
     </script>
 </body>
 </html>
