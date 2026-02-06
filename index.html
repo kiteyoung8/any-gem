@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>anyGem AI Agent</title>
+    <title>anyGem v7.0 : Camera Agent</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -12,51 +12,80 @@
         .loading-dots::after { content: '.'; animation: dots 1.5s infinite; }
         @keyframes dots { 0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; } }
         .prose pre { background: #1a1b26 !important; border-radius: 8px; margin-top: 10px; }
+        /* 隱藏捲軸但保持功能 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        /* 相機模態視窗樣式 */
+        #camera-modal { backdrop-filter: blur(5px); }
     </style>
 </head>
 <body class="bg-[#0f172a] text-slate-300 h-screen flex flex-col font-sans">
 
-    <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center sticky top-0 z-50">
+    <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center sticky top-0 z-50 shadow-md">
         <div class="flex items-center space-x-3">
-            <div class="w-3 h-3 bg-cyan-500 rounded-full shadow-[0_0_10px_#22d3ee] animate-pulse"></div>
-            <span class="text-xl font-bold text-white tracking-tight">anyGem <span class="text-cyan-400">Agent</span></span>
+            <div class="w-3 h-3 bg-rose-500 rounded-full shadow-[0_0_10px_#f43f5e] animate-pulse"></div>
+            <span class="text-xl font-bold text-white tracking-tight">anyGem <span class="text-rose-400">Cam</span></span>
         </div>
-        <div class="text-xs text-slate-500 font-mono" id="session-display">...</div>
+        <div class="text-[10px] text-slate-500 font-mono" id="session-display">Connecting...</div>
     </header>
 
     <main id="chat-window" class="flex-grow p-4 md:p-6 overflow-y-auto space-y-6 max-w-5xl mx-auto w-full scroll-smooth"></main>
 
-    <div id="file-status" class="hidden max-w-4xl mx-auto px-4 pb-2 text-xs text-cyan-400">
-        📎 已選擇: <span id="filename-display"></span>
+    <div id="file-status" class="hidden max-w-4xl mx-auto px-4 pb-2 text-xs text-rose-400 flex items-center gap-2">
+        <span>📎 已捕捉/選擇:</span>
+        <span id="filename-display" class="font-bold text-white"></span>
+        <button onclick="clearFile()" class="text-slate-500 hover:text-white px-2">✕</button>
     </div>
 
     <footer class="p-4 bg-[#1e293b] border-t border-slate-800">
-        <div class="max-w-4xl mx-auto flex gap-3 items-center">
-            <label class="cursor-pointer bg-slate-700 hover:bg-slate-600 p-3 rounded-xl transition-all text-white flex items-center justify-center">
-                <input type="file" id="file-upload" class="hidden" accept=".txt,.pdf,.doc,.docx,.jpg,.png">
+        <div class="max-w-4xl mx-auto flex gap-2 items-center">
+            
+            <input type="file" id="file-upload" class="hidden" accept=".txt,.pdf,.doc,.docx,.jpg,.png">
+            
+            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-700 hover:bg-slate-600 p-3 rounded-xl text-white transition hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]" title="上傳檔案">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
                 </svg>
-            </label>
+            </button>
+
+            <button onclick="openCamera()" class="bg-slate-700 hover:bg-rose-600 p-3 rounded-xl text-white transition hover:shadow-[0_0_10px_rgba(244,63,94,0.4)]" title="拍照">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                </svg>
+            </button>
 
             <input type="text" id="user-input" 
-                   class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-3 focus:outline-none focus:border-cyan-500 text-white" 
-                   placeholder="輸入訊息，或上傳檔案..." autocomplete="off">
+                   class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-3 focus:outline-none focus:border-rose-500 text-white transition-all shadow-inner placeholder-slate-600" 
+                   placeholder="拍攝文件或輸入問題..." autocomplete="off">
             
             <button onclick="handleSend()" id="send-btn" 
-                    class="bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-2 rounded-xl font-bold disabled:opacity-50">
+                    class="bg-rose-600 hover:bg-rose-500 text-white px-5 py-2 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base whitespace-nowrap">
                 SEND
             </button>
         </div>
     </footer>
 
+    <div id="camera-modal" class="hidden fixed inset-0 bg-black/90 z-[60] flex flex-col justify-center items-center p-4">
+        <div class="relative w-full max-w-2xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-700">
+            <video id="video-feed" autoplay playsinline class="w-full h-auto bg-gray-900"></video>
+            <canvas id="camera-canvas" class="hidden"></canvas>
+            
+            <div class="absolute bottom-0 inset-x-0 p-6 flex justify-between items-center bg-gradient-to-t from-black/80 to-transparent">
+                <button onclick="closeCamera()" class="text-white hover:text-gray-300 font-bold px-4">取消</button>
+                
+                <button onclick="takePhoto()" class="w-16 h-16 rounded-full border-4 border-white bg-white/20 hover:bg-white/40 active:scale-95 transition-all"></button>
+                
+                <div class="w-12"></div> </div>
+        </div>
+    </div>
+
     <script>
-        // ⚠️⚠️⚠️ 請務必確認這裡是你 GAS 的網址 ⚠️⚠️⚠️
+        // ⚠️ 請填入你的 GAS 網址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        
+
         const chatWindow = document.getElementById('chat-window');
         const input = document.getElementById('user-input');
         const btn = document.getElementById('send-btn');
@@ -64,38 +93,106 @@
         const fileStatus = document.getElementById('file-status');
         const fileNameDisplay = document.getElementById('filename-display');
         
+        // 相機相關元件
+        const cameraModal = document.getElementById('camera-modal');
+        const videoFeed = document.getElementById('video-feed');
+        const canvas = document.getElementById('camera-canvas');
+        let videoStream = null;
+
         const sessId = "User_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         document.getElementById('session-display').innerText = `ID: ${sessId}`;
 
-        let selectedFile = null;
+        // 統一的檔案暫存 (不管是上傳的還是拍的)
+        let activeFile = null;
 
+        // 1. 處理傳統檔案上傳
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
-                selectedFile = e.target.files[0];
-                fileStatus.classList.remove('hidden');
-                fileNameDisplay.innerText = selectedFile.name;
+                setFile(e.target.files[0]);
             }
         });
 
+        // 2. 開啟相機
+        async function openCamera() {
+            try {
+                cameraModal.classList.remove('hidden');
+                // 優先使用後置鏡頭 (environment)
+                videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                });
+                videoFeed.srcObject = videoStream;
+            } catch (err) {
+                alert("無法存取相機，請檢查權限設定。\n(若是 iPhone，請使用 Safari 開啟)");
+                console.error(err);
+                closeCamera();
+            }
+        }
+
+        // 3. 關閉相機
+        function closeCamera() {
+            cameraModal.classList.add('hidden');
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+        }
+
+        // 4. 拍照
+        function takePhoto() {
+            // 設定畫布尺寸等於影片尺寸
+            canvas.width = videoFeed.videoWidth;
+            canvas.height = videoFeed.videoHeight;
+            
+            // 繪製目前影格
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoFeed, 0, 0, canvas.width, canvas.height);
+            
+            // 轉成 Blob -> File
+            canvas.toBlob((blob) => {
+                const capturedFile = new File([blob], "camera_photo.jpg", { type: "image/jpeg" });
+                setFile(capturedFile);
+                closeCamera();
+            }, 'image/jpeg', 0.8); // 0.8 是壓縮品質
+        }
+
+        // 5. 設定當前檔案
+        function setFile(file) {
+            activeFile = file;
+            fileStatus.classList.remove('hidden');
+            fileNameDisplay.innerText = file.name;
+            input.placeholder = "請輸入 '總結這張照片' 或其他指令...";
+            input.focus();
+        }
+
+        function clearFile() {
+            activeFile = null;
+            fileInput.value = "";
+            fileStatus.classList.add('hidden');
+            input.placeholder = "輸入訊息，或使用相機/上傳...";
+        }
+
         async function handleSend() {
             const text = input.value.trim();
-            if ((!text && !selectedFile) || btn.disabled) return;
+            // 如果只有照片沒有文字，預設文字為 "分析這張圖片"
+            const finalMsg = (!text && activeFile) ? "請分析這張圖片內容，並進行摘要。" : text;
 
-            const displayMsg = selectedFile ? `[上傳檔案] ${selectedFile.name}\n${text}` : text;
+            if ((!finalMsg && !activeFile) || btn.disabled) return;
+
+            const displayMsg = activeFile ? `[已附加圖片/檔案] ${activeFile.name}\n${finalMsg}` : finalMsg;
             addMessage('user', displayMsg);
             
             input.value = '';
-            fileStatus.classList.add('hidden');
-            setLoading(true, selectedFile ? "Uploading..." : "Thinking");
+            clearFile(); // 發送後清除檔案
+            setLoading(true, activeFile ? "Analyzing Image..." : "Thinking");
 
             try {
-                let payload = { message: text, session_id: sessId };
+                let payload = { message: finalMsg, session_id: sessId };
 
-                if (selectedFile) {
-                    const base64Data = await toBase64(selectedFile);
+                if (activeFile) {
+                    const base64Data = await toBase64(activeFile);
                     payload.file_data = base64Data.split(',')[1];
-                    payload.file_name = selectedFile.name;
-                    payload.mime_type = selectedFile.type;
+                    payload.file_name = activeFile.name;
+                    payload.mime_type = activeFile.type;
                 }
 
                 const res = await fetch(GAS_URL, {
@@ -111,11 +208,10 @@
                     addMessage('ai', "⚠️ Error: " + (data.error || "Unknown"));
                 }
             } catch (e) {
-                addMessage('ai', "❌ Connection Failed");
+                console.error(e);
+                addMessage('ai', "❌ 連線失敗 (Connection Error)");
             } finally {
                 setLoading(false);
-                selectedFile = null;
-                fileInput.value = "";
             }
         }
 
@@ -132,13 +228,13 @@
             const div = document.createElement('div');
             div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
             const bubble = document.createElement('div');
-            bubble.className = `max-w-[85%] p-4 rounded-2xl shadow-lg prose prose-invert ${
-                role === 'user' ? 'bg-cyan-900 text-cyan-50' : 'bg-slate-800'
+            bubble.className = `max-w-[90%] md:max-w-[80%] p-4 rounded-2xl shadow-lg prose prose-invert ${
+                role === 'user' ? 'bg-rose-900 text-rose-50' : 'bg-slate-800'
             }`;
             bubble.innerHTML = marked.parse(text);
             div.appendChild(bubble);
             chatWindow.appendChild(div);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
             if (role === 'ai') hljs.highlightAll();
         }
 
@@ -147,15 +243,23 @@
             if (isLoading) {
                 const loader = document.createElement('div');
                 loader.id = 'loader';
-                loader.className = 'flex justify-start mb-4 text-cyan-400 font-mono text-sm';
+                loader.className = 'flex justify-start mb-4 text-rose-400 font-mono text-sm';
                 loader.innerHTML = `⚡ ${text} <span class="loading-dots"></span>`;
                 chatWindow.appendChild(loader);
-                chatWindow.scrollTop = chatWindow.scrollHeight;
+                chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
             } else {
                 const loader = document.getElementById('loader');
                 if (loader) loader.remove();
             }
         }
+        
+        // Enter 發送
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
     </script>
 </body>
 </html>
