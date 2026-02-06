@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v9.0 : Voice & Vision</title>
+    <title>anyGem v11.0 : Smart Toggle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -15,15 +15,27 @@
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         
-        /* 錄音中的呼吸燈效果 */
+        /* 🔴 錄音呼吸燈 */
         .recording-pulse {
             animation: pulse-red 1.5s infinite;
-            background-color: #ef4444 !important; /* Red-500 */
+            background-color: #ef4444 !important;
         }
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* 🔵 搜尋模式呼吸燈 (新功能) */
+        .search-active {
+            animation: pulse-blue 1.5s infinite;
+            background-color: #3b82f6 !important; /* Blue-500 */
+            color: white !important;
+        }
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
         }
     </style>
 </head>
@@ -31,8 +43,8 @@
 
     <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center sticky top-0 z-50 shadow-md">
         <div class="flex items-center space-x-2">
-            <div class="w-3 h-3 bg-purple-500 rounded-full shadow-[0_0_10px_#a855f7] animate-pulse"></div>
-            <span class="text-lg font-bold text-white tracking-tight">anyGem <span class="text-purple-400">Voice</span></span>
+            <div class="w-3 h-3 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6] animate-pulse"></div>
+            <span class="text-lg font-bold text-white tracking-tight">anyGem <span class="text-blue-400">Pro</span></span>
         </div>
         <div class="text-[10px] text-slate-500 font-mono" id="session-display">...</div>
     </header>
@@ -40,7 +52,7 @@
     <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 w-full scroll-smooth"></main>
 
     <div id="file-status" class="hidden px-4 pb-2 text-xs text-green-400 flex items-center gap-2">
-        <span>📸 影像/檔案:</span>
+        <span>📸 準備傳送:</span>
         <span id="filename-display" class="font-bold text-white truncate max-w-[150px]"></span>
         <span id="filesize-display" class="text-slate-500 text-[10px]"></span>
         <button onclick="clearFile()" class="text-slate-400 hover:text-white px-2 ml-auto">✕</button>
@@ -58,15 +70,21 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             </button>
 
+            <button id="search-btn" onclick="toggleSearchMode()" class="bg-slate-700 p-3 rounded-full text-white shrink-0 hover:bg-blue-500 transition relative" title="開啟聯網搜尋">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+            </button>
+
             <button id="mic-btn" onclick="toggleDictation()" class="bg-slate-700 p-3 rounded-full text-white shrink-0 hover:bg-red-500 transition relative">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
             </button>
 
-            <input type="text" id="user-input" class="w-full bg-[#0f172a] border border-slate-700 rounded-full px-4 py-2 focus:border-purple-500 text-white outline-none transition-all placeholder-slate-600" placeholder="輸入訊息..." autocomplete="off">
+            <input type="text" id="user-input" class="w-full bg-[#0f172a] border border-slate-700 rounded-full px-4 py-2 focus:border-blue-500 text-white outline-none transition-all placeholder-slate-600" placeholder="輸入訊息..." autocomplete="off">
             
-            <button onclick="handleSend()" id="send-btn" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-full font-bold shrink-0 disabled:opacity-50">SEND</button>
+            <button onclick="handleSend()" id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full font-bold shrink-0 disabled:opacity-50">SEND</button>
         </div>
     </footer>
 
@@ -81,7 +99,6 @@
     </div>
 
     <script>
-        // ⚠️ 請填入你的 GAS URL
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
 
         const chatWindow = document.getElementById('chat-window');
@@ -90,24 +107,39 @@
         const fileInput = document.getElementById('file-upload');
         const fileStatus = document.getElementById('file-status');
         const micBtn = document.getElementById('mic-btn');
+        const searchBtn = document.getElementById('search-btn');
+        
         const sessId = "User_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         document.getElementById('session-display').innerText = sessId;
 
         let activeFile = null;
         let videoStream = null;
         let useFrontCamera = false;
-        
-        // 🎙️ 語音辨識設定
+        let isSearchMode = false; // 🔍 搜尋模式狀態
+
+        // 🌍 切換搜尋模式
+        function toggleSearchMode() {
+            isSearchMode = !isSearchMode;
+            if (isSearchMode) {
+                searchBtn.classList.add('search-active');
+                input.placeholder = "輸入關鍵字直接搜尋...";
+                input.focus();
+            } else {
+                searchBtn.classList.remove('search-active');
+                input.placeholder = "輸入訊息...";
+            }
+        }
+
+        // 🎙️ 語音辨識
         let recognition = null;
         let isRecording = false;
 
-        // 檢查瀏覽器支援度
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
-            recognition.continuous = false; // 講完一句自動停
-            recognition.interimResults = true; // 顯示即時結果
-            recognition.lang = 'cmn-Hant-TW'; // 繁體中文
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'cmn-Hant-TW';
 
             recognition.onresult = (event) => {
                 let transcript = '';
@@ -116,41 +148,24 @@
                 }
                 input.value = transcript;
             };
-
-            recognition.onend = () => {
-                stopDictationUI();
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Speech Error:", event.error);
-                stopDictationUI();
-            };
-        } else {
-            micBtn.style.display = 'none'; // 不支援就隱藏按鈕
-            console.log("Browser does not support Web Speech API");
-        }
+            recognition.onend = () => { stopDictationUI(); };
+            recognition.onerror = (event) => { console.error(event); stopDictationUI(); };
+        } else { micBtn.style.display = 'none'; }
 
         function toggleDictation() {
             if (!recognition) return;
-            if (isRecording) {
-                recognition.stop();
-            } else {
-                recognition.start();
-                micBtn.classList.add('recording-pulse');
-                input.placeholder = "正在聆聽...";
-                isRecording = true;
-            }
+            if (isRecording) { recognition.stop(); } 
+            else { recognition.start(); micBtn.classList.add('recording-pulse'); input.placeholder = "正在聆聽..."; isRecording = true; }
         }
 
         function stopDictationUI() {
             micBtn.classList.remove('recording-pulse');
-            input.placeholder = "輸入訊息...";
+            input.placeholder = isSearchMode ? "輸入關鍵字直接搜尋..." : "輸入訊息...";
             isRecording = false;
             input.focus();
         }
 
-        // --- 以下為 v8.0 的檔案/相機功能 (保持不變) ---
-
+        // 檔案處理
         fileInput.addEventListener('change', async (e) => {
             if (e.target.files.length > 0) {
                 let file = e.target.files[0];
@@ -163,86 +178,36 @@
             }
         });
 
-        async function openCamera() {
-            document.getElementById('camera-modal').classList.remove('hidden');
-            startVideo();
-        }
+        // 相機功能 (略縮版)
+        async function openCamera() { document.getElementById('camera-modal').classList.remove('hidden'); startVideo(); }
+        async function startVideo() { if (videoStream) videoStream.getTracks().forEach(t=>t.stop()); const c={video:{facingMode:useFrontCamera?"user":"environment"}}; videoStream=await navigator.mediaDevices.getUserMedia(c); document.getElementById('video-feed').srcObject=videoStream; }
+        function switchCamera() { useFrontCamera=!useFrontCamera; startVideo(); }
+        function closeCamera() { document.getElementById('camera-modal').classList.add('hidden'); if(videoStream) videoStream.getTracks().forEach(t=>t.stop()); }
+        async function takePhoto() { const v=document.getElementById('video-feed'); const c=document.getElementById('camera-canvas'); c.width=800; c.height=v.videoHeight*(800/v.videoWidth); c.getContext('2d').drawImage(v,0,0,c.width,c.height); c.toBlob(b=>{ setFile(new File([b],"photo.jpg",{type:"image/jpeg"})); closeCamera(); },'image/jpeg',0.7); }
+        function compressImage(f) { return new Promise(r=>{ const i=new Image(); i.src=URL.createObjectURL(f); i.onload=()=>{ const c=document.createElement('canvas'); const w=Math.min(i.width,1024); const h=i.height*(w/i.width); c.width=w; c.height=h; c.getContext('2d').drawImage(i,0,0,w,h); c.toBlob(b=>r(new File([b],f.name,{type:"image/jpeg"})),'image/jpeg',0.7); }; }); }
 
-        async function startVideo() {
-            if (videoStream) videoStream.getTracks().forEach(t => t.stop());
-            try {
-                const constraints = { video: { facingMode: useFrontCamera ? "user" : "environment" } };
-                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
-                document.getElementById('video-feed').srcObject = videoStream;
-            } catch (e) { alert("相機錯誤: " + e); closeCamera(); }
-        }
+        function setFile(f) { activeFile=f; fileStatus.classList.remove('hidden'); document.getElementById('filename-display').innerText=f.name; document.getElementById('filesize-display').innerText=(f.size/1024).toFixed(1)+"KB"; input.placeholder="描述這張圖片..."; }
+        function clearFile() { activeFile=null; fileInput.value=""; fileStatus.classList.add('hidden'); input.placeholder=isSearchMode?"輸入關鍵字直接搜尋...":"輸入訊息..."; }
 
-        function switchCamera() { useFrontCamera = !useFrontCamera; startVideo(); }
-
-        function closeCamera() {
-            document.getElementById('camera-modal').classList.add('hidden');
-            if (videoStream) videoStream.getTracks().forEach(t => t.stop());
-        }
-
-        async function takePhoto() {
-            const video = document.getElementById('video-feed');
-            const canvas = document.getElementById('camera-canvas');
-            const maxWidth = 800;
-            const scale = maxWidth / video.videoWidth;
-            canvas.width = maxWidth;
-            canvas.height = video.videoHeight * scale;
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob((blob) => {
-                const file = new File([blob], "photo.jpg", { type: "image/jpeg" });
-                setFile(file);
-                closeCamera();
-            }, 'image/jpeg', 0.7);
-        }
-
-        function compressImage(file) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const maxWidth = 1024;
-                    let width = img.width;
-                    let height = img.height;
-                    if (width > maxWidth) {
-                        height = height * (maxWidth / width);
-                        width = maxWidth;
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                    canvas.toBlob((blob) => resolve(new File([blob], file.name, { type: "image/jpeg" })), 'image/jpeg', 0.7);
-                };
-            });
-        }
-
-        function setFile(file) {
-            activeFile = file;
-            fileStatus.classList.remove('hidden');
-            document.getElementById('filename-display').innerText = file.name;
-            document.getElementById('filesize-display').innerText = (file.size / 1024).toFixed(1) + "KB";
-            input.placeholder = "描述這張圖片...";
-        }
-
-        function clearFile() {
-            activeFile = null;
-            fileInput.value = "";
-            fileStatus.classList.add('hidden');
-            input.placeholder = "輸入訊息...";
-        }
-
+        // 發送訊息
         async function handleSend() {
             const text = input.value.trim();
             if ((!text && !activeFile) || btn.disabled) return;
-            addMessage('user', activeFile ? `[檔案] ${activeFile.name}\n${text}` : text);
+
+            // 顯示訊息 (如果有開搜尋模式，前面加個 🌍)
+            const displayPrefix = isSearchMode ? "🌍 [聯網搜尋] " : "";
+            addMessage('user', activeFile ? `[檔案] ${activeFile.name}\n${displayPrefix}${text}` : `${displayPrefix}${text}`);
+            
             input.value = '';
-            setLoading(true, "AI 思考中...");
+            setLoading(true, isSearchMode ? "正在 Google 搜尋..." : "AI 思考中...");
+            
             try {
-                let payload = { message: text, session_id: sessId };
+                let payload = { 
+                    message: text, 
+                    session_id: sessId,
+                    enable_search: isSearchMode // 告訴後端：這次要搜尋！
+                };
+
                 if (activeFile) {
                     const base64 = await toBase64(activeFile);
                     payload.file_data = base64.split(',')[1];
@@ -250,33 +215,24 @@
                     payload.mime_type = activeFile.type;
                     clearFile();
                 }
+
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const data = await res.json();
-                if (data.status === "success") { addMessage('ai', data.reply); } else { addMessage('ai', "⚠️ Error: " + data.error); }
-            } catch (e) { addMessage('ai', "❌ Failed"); } finally { setLoading(false); }
+                
+                if (data.status === "success") { addMessage('ai', data.reply); } 
+                else { addMessage('ai', "⚠️ Error: " + data.error); }
+
+            } catch (e) { addMessage('ai', "❌ Failed"); } 
+            finally { 
+                setLoading(false); 
+                // 發送完畢後，自動關閉搜尋模式 (你也可以拿掉這行讓它保持開啟)
+                if (isSearchMode) toggleSearchMode(); 
+            }
         }
 
-        function toBase64(file) { return new Promise((r) => { const reader = new FileReader(); reader.onload = () => r(reader.result); reader.readAsDataURL(file); }); }
-
-        function addMessage(role, text) {
-            const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
-            const bubble = document.createElement('div');
-            bubble.className = `max-w-[85%] p-3 rounded-2xl ${role === 'user'?'bg-purple-700 text-white':'bg-slate-800 text-slate-200'} prose prose-invert prose-sm`;
-            bubble.innerHTML = marked.parse(text);
-            div.appendChild(bubble);
-            chatWindow.appendChild(div);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-
-        function setLoading(isLoading, text) {
-            btn.disabled = isLoading;
-            if(isLoading) {
-                const d = document.createElement('div'); d.id='loader';
-                d.className='text-purple-400 text-xs font-mono mb-4 animate-pulse';
-                d.innerText = "⚡ " + text; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight;
-            } else { const l = document.getElementById('loader'); if(l) l.remove(); }
-        }
+        function toBase64(f) { return new Promise(r=>{ const rd=new FileReader(); rd.onload=()=>r(rd.result); rd.readAsDataURL(f); }); }
+        function addMessage(role, text) { const d=document.createElement('div'); d.className=`flex ${role==='user'?'justify-end':'justify-start'} mb-4`; const b=document.createElement('div'); b.className=`max-w-[85%] p-3 rounded-2xl ${role==='user'?'bg-blue-700 text-white':'bg-slate-800 text-slate-200'} prose prose-invert prose-sm`; b.innerHTML=marked.parse(text); d.appendChild(b); chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }
+        function setLoading(l,t) { btn.disabled=l; if(l){ const d=document.createElement('div'); d.id='loader'; d.className='text-blue-400 text-xs font-mono mb-4 animate-pulse'; d.innerText="⚡ "+t; chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }else{ const e=document.getElementById('loader'); if(e)e.remove(); } }
     </script>
 </body>
 </html>
