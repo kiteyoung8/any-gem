@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v11.0 : Smart Toggle</title>
+    <title>anyGem v11.0 : Ultimate Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -26,7 +26,7 @@
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        /* 🔵 搜尋模式呼吸燈 (新功能) */
+        /* 🔵 搜尋模式呼吸燈 */
         .search-active {
             animation: pulse-blue 1.5s infinite;
             background-color: #3b82f6 !important; /* Blue-500 */
@@ -43,7 +43,7 @@
 
     <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center sticky top-0 z-50 shadow-md">
         <div class="flex items-center space-x-2">
-            <div class="w-3 h-3 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6] animate-pulse"></div>
+            <div class="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
             <span class="text-lg font-bold text-white tracking-tight">anyGem <span class="text-blue-400">Pro</span></span>
         </div>
         <div class="text-[10px] text-slate-500 font-mono" id="session-display">...</div>
@@ -99,6 +99,7 @@
     </div>
 
     <script>
+        // ⚠️ 請填入你的 GAS URL
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
 
         const chatWindow = document.getElementById('chat-window');
@@ -115,14 +116,14 @@
         let activeFile = null;
         let videoStream = null;
         let useFrontCamera = false;
-        let isSearchMode = false; // 🔍 搜尋模式狀態
+        let isSearchMode = false; 
 
         // 🌍 切換搜尋模式
         function toggleSearchMode() {
             isSearchMode = !isSearchMode;
             if (isSearchMode) {
                 searchBtn.classList.add('search-active');
-                input.placeholder = "輸入關鍵字直接搜尋...";
+                input.placeholder = "輸入關鍵字直接搜尋 (例如：今日金價)...";
                 input.focus();
             } else {
                 searchBtn.classList.remove('search-active');
@@ -133,19 +134,15 @@
         // 🎙️ 語音辨識
         let recognition = null;
         let isRecording = false;
-
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.continuous = false;
             recognition.interimResults = true;
             recognition.lang = 'cmn-Hant-TW';
-
             recognition.onresult = (event) => {
                 let transcript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    transcript += event.results[i][0].transcript;
-                }
+                for (let i = event.resultIndex; i < event.results.length; ++i) { transcript += event.results[i][0].transcript; }
                 input.value = transcript;
             };
             recognition.onend = () => { stopDictationUI(); };
@@ -157,7 +154,6 @@
             if (isRecording) { recognition.stop(); } 
             else { recognition.start(); micBtn.classList.add('recording-pulse'); input.placeholder = "正在聆聽..."; isRecording = true; }
         }
-
         function stopDictationUI() {
             micBtn.classList.remove('recording-pulse');
             input.placeholder = isSearchMode ? "輸入關鍵字直接搜尋..." : "輸入訊息...";
@@ -165,7 +161,7 @@
             input.focus();
         }
 
-        // 檔案處理
+        // 檔案與相機
         fileInput.addEventListener('change', async (e) => {
             if (e.target.files.length > 0) {
                 let file = e.target.files[0];
@@ -178,23 +174,20 @@
             }
         });
 
-        // 相機功能 (略縮版)
         async function openCamera() { document.getElementById('camera-modal').classList.remove('hidden'); startVideo(); }
         async function startVideo() { if (videoStream) videoStream.getTracks().forEach(t=>t.stop()); const c={video:{facingMode:useFrontCamera?"user":"environment"}}; videoStream=await navigator.mediaDevices.getUserMedia(c); document.getElementById('video-feed').srcObject=videoStream; }
         function switchCamera() { useFrontCamera=!useFrontCamera; startVideo(); }
         function closeCamera() { document.getElementById('camera-modal').classList.add('hidden'); if(videoStream) videoStream.getTracks().forEach(t=>t.stop()); }
         async function takePhoto() { const v=document.getElementById('video-feed'); const c=document.getElementById('camera-canvas'); c.width=800; c.height=v.videoHeight*(800/v.videoWidth); c.getContext('2d').drawImage(v,0,0,c.width,c.height); c.toBlob(b=>{ setFile(new File([b],"photo.jpg",{type:"image/jpeg"})); closeCamera(); },'image/jpeg',0.7); }
         function compressImage(f) { return new Promise(r=>{ const i=new Image(); i.src=URL.createObjectURL(f); i.onload=()=>{ const c=document.createElement('canvas'); const w=Math.min(i.width,1024); const h=i.height*(w/i.width); c.width=w; c.height=h; c.getContext('2d').drawImage(i,0,0,w,h); c.toBlob(b=>r(new File([b],f.name,{type:"image/jpeg"})),'image/jpeg',0.7); }; }); }
-
         function setFile(f) { activeFile=f; fileStatus.classList.remove('hidden'); document.getElementById('filename-display').innerText=f.name; document.getElementById('filesize-display').innerText=(f.size/1024).toFixed(1)+"KB"; input.placeholder="描述這張圖片..."; }
         function clearFile() { activeFile=null; fileInput.value=""; fileStatus.classList.add('hidden'); input.placeholder=isSearchMode?"輸入關鍵字直接搜尋...":"輸入訊息..."; }
 
-        // 發送訊息
+        // 發送邏輯
         async function handleSend() {
             const text = input.value.trim();
             if ((!text && !activeFile) || btn.disabled) return;
 
-            // 顯示訊息 (如果有開搜尋模式，前面加個 🌍)
             const displayPrefix = isSearchMode ? "🌍 [聯網搜尋] " : "";
             addMessage('user', activeFile ? `[檔案] ${activeFile.name}\n${displayPrefix}${text}` : `${displayPrefix}${text}`);
             
@@ -202,12 +195,7 @@
             setLoading(true, isSearchMode ? "正在 Google 搜尋..." : "AI 思考中...");
             
             try {
-                let payload = { 
-                    message: text, 
-                    session_id: sessId,
-                    enable_search: isSearchMode // 告訴後端：這次要搜尋！
-                };
-
+                let payload = { message: text, session_id: sessId, enable_search: isSearchMode };
                 if (activeFile) {
                     const base64 = await toBase64(activeFile);
                     payload.file_data = base64.split(',')[1];
@@ -225,7 +213,6 @@
             } catch (e) { addMessage('ai', "❌ Failed"); } 
             finally { 
                 setLoading(false); 
-                // 發送完畢後，自動關閉搜尋模式 (你也可以拿掉這行讓它保持開啟)
                 if (isSearchMode) toggleSearchMode(); 
             }
         }
