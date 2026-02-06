@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v11.0 : Ultimate Assistant</title>
+    <title>anyGem v14.0 : Multi-Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -12,41 +12,28 @@
         .loading-dots::after { content: '.'; animation: dots 1.5s infinite; }
         @keyframes dots { 0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; } }
         .prose pre { background: #1a1b26 !important; border-radius: 8px; margin-top: 10px; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         
-        /* 🔴 錄音呼吸燈 */
-        .recording-pulse {
-            animation: pulse-red 1.5s infinite;
-            background-color: #ef4444 !important;
-        }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
+        /* 錄音呼吸燈 */
+        .recording-pulse { animation: pulse-red 1.5s infinite; background-color: #ef4444 !important; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
 
-        /* 🔵 搜尋模式呼吸燈 */
-        .search-active {
-            animation: pulse-blue 1.5s infinite;
-            background-color: #3b82f6 !important; /* Blue-500 */
-            color: white !important;
-        }
-        @keyframes pulse-blue {
-            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-        }
+        /* 自訂下拉選單樣式 */
+        select { appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23cbd5e1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 0.7rem top 50%; background-size: 0.65rem auto; }
     </style>
 </head>
 <body class="bg-[#0f172a] text-slate-300 h-screen flex flex-col font-sans">
 
     <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center sticky top-0 z-50 shadow-md">
         <div class="flex items-center space-x-2">
-            <div class="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
-            <span class="text-lg font-bold text-white tracking-tight">anyGem <span class="text-blue-400">Pro</span></span>
+            <div class="w-3 h-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-pulse"></div>
+            <span class="text-lg font-bold text-white tracking-tight">anyGem <span class="text-cyan-400">v14</span></span>
         </div>
-        <div class="text-[10px] text-slate-500 font-mono" id="session-display">...</div>
+        
+        <select id="mode-select" onchange="updateModeUI()" class="bg-slate-700 text-white text-xs py-1.5 pl-3 pr-8 rounded-lg border border-slate-600 focus:outline-none focus:border-cyan-500 transition shadow-sm font-bold tracking-wide">
+            <option value="chat">💬 閒聊模式</option>
+            <option value="search">🌍 聯網搜尋</option>
+            <option value="assistant">📅 私人助理</option>
+        </select>
     </header>
 
     <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 w-full scroll-smooth"></main>
@@ -70,21 +57,15 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             </button>
 
-            <button id="search-btn" onclick="toggleSearchMode()" class="bg-slate-700 p-3 rounded-full text-white shrink-0 hover:bg-blue-500 transition relative" title="開啟聯網搜尋">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                </svg>
-            </button>
-
             <button id="mic-btn" onclick="toggleDictation()" class="bg-slate-700 p-3 rounded-full text-white shrink-0 hover:bg-red-500 transition relative">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                 </svg>
             </button>
 
-            <input type="text" id="user-input" class="w-full bg-[#0f172a] border border-slate-700 rounded-full px-4 py-2 focus:border-blue-500 text-white outline-none transition-all placeholder-slate-600" placeholder="輸入訊息..." autocomplete="off">
+            <input type="text" id="user-input" class="w-full bg-[#0f172a] border border-slate-700 rounded-full px-4 py-2 focus:border-cyan-500 text-white outline-none transition-all placeholder-slate-600" placeholder="輸入訊息..." autocomplete="off">
             
-            <button onclick="handleSend()" id="send-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full font-bold shrink-0 disabled:opacity-50">SEND</button>
+            <button onclick="handleSend()" id="send-btn" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-full font-bold shrink-0 disabled:opacity-50">SEND</button>
         </div>
     </footer>
 
@@ -108,28 +89,29 @@
         const fileInput = document.getElementById('file-upload');
         const fileStatus = document.getElementById('file-status');
         const micBtn = document.getElementById('mic-btn');
-        const searchBtn = document.getElementById('search-btn');
-        
+        const modeSelect = document.getElementById('mode-select'); // 取得下拉選單
         const sessId = "User_" + Math.random().toString(36).substr(2, 6).toUpperCase();
-        document.getElementById('session-display').innerText = sessId;
 
         let activeFile = null;
         let videoStream = null;
         let useFrontCamera = false;
-        let isSearchMode = false; 
 
-        // 🌍 切換搜尋模式
-        function toggleSearchMode() {
-            isSearchMode = !isSearchMode;
-            if (isSearchMode) {
-                searchBtn.classList.add('search-active');
-                input.placeholder = "輸入關鍵字直接搜尋 (例如：今日金價)...";
-                input.focus();
+        // 🔄 更新 UI 提示文字
+        function updateModeUI() {
+            const mode = modeSelect.value;
+            if (mode === 'search') {
+                input.placeholder = "輸入關鍵字進行搜尋 (例如：今日天氣)...";
+                btn.className = "bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full font-bold shrink-0";
+            } else if (mode === 'assistant') {
+                input.placeholder = "輸入指令 (例如：明天下午兩點開會)...";
+                btn.className = "bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-full font-bold shrink-0";
             } else {
-                searchBtn.classList.remove('search-active');
                 input.placeholder = "輸入訊息...";
+                btn.className = "bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-full font-bold shrink-0";
             }
         }
+        // 初始化一次
+        updateModeUI();
 
         // 🎙️ 語音辨識
         let recognition = null;
@@ -156,7 +138,7 @@
         }
         function stopDictationUI() {
             micBtn.classList.remove('recording-pulse');
-            input.placeholder = isSearchMode ? "輸入關鍵字直接搜尋..." : "輸入訊息...";
+            updateModeUI(); // 恢復正確的 placeholder
             isRecording = false;
             input.focus();
         }
@@ -173,7 +155,6 @@
                 setFile(file);
             }
         });
-
         async function openCamera() { document.getElementById('camera-modal').classList.remove('hidden'); startVideo(); }
         async function startVideo() { if (videoStream) videoStream.getTracks().forEach(t=>t.stop()); const c={video:{facingMode:useFrontCamera?"user":"environment"}}; videoStream=await navigator.mediaDevices.getUserMedia(c); document.getElementById('video-feed').srcObject=videoStream; }
         function switchCamera() { useFrontCamera=!useFrontCamera; startVideo(); }
@@ -181,21 +162,31 @@
         async function takePhoto() { const v=document.getElementById('video-feed'); const c=document.getElementById('camera-canvas'); c.width=800; c.height=v.videoHeight*(800/v.videoWidth); c.getContext('2d').drawImage(v,0,0,c.width,c.height); c.toBlob(b=>{ setFile(new File([b],"photo.jpg",{type:"image/jpeg"})); closeCamera(); },'image/jpeg',0.7); }
         function compressImage(f) { return new Promise(r=>{ const i=new Image(); i.src=URL.createObjectURL(f); i.onload=()=>{ const c=document.createElement('canvas'); const w=Math.min(i.width,1024); const h=i.height*(w/i.width); c.width=w; c.height=h; c.getContext('2d').drawImage(i,0,0,w,h); c.toBlob(b=>r(new File([b],f.name,{type:"image/jpeg"})),'image/jpeg',0.7); }; }); }
         function setFile(f) { activeFile=f; fileStatus.classList.remove('hidden'); document.getElementById('filename-display').innerText=f.name; document.getElementById('filesize-display').innerText=(f.size/1024).toFixed(1)+"KB"; input.placeholder="描述這張圖片..."; }
-        function clearFile() { activeFile=null; fileInput.value=""; fileStatus.classList.add('hidden'); input.placeholder=isSearchMode?"輸入關鍵字直接搜尋...":"輸入訊息..."; }
+        function clearFile() { activeFile=null; fileInput.value=""; fileStatus.classList.add('hidden'); updateModeUI(); }
 
         // 發送邏輯
         async function handleSend() {
             const text = input.value.trim();
             if ((!text && !activeFile) || btn.disabled) return;
 
-            const displayPrefix = isSearchMode ? "🌍 [聯網搜尋] " : "";
-            addMessage('user', activeFile ? `[檔案] ${activeFile.name}\n${displayPrefix}${text}` : `${displayPrefix}${text}`);
+            // 取得目前模式
+            const currentMode = modeSelect.value;
+            let modeLabel = "";
+            if (currentMode === 'search') modeLabel = "🌍 [搜尋] ";
+            if (currentMode === 'assistant') modeLabel = "📅 [助理] ";
+
+            addMessage('user', activeFile ? `[檔案] ${activeFile.name}\n${modeLabel}${text}` : `${modeLabel}${text}`);
             
             input.value = '';
-            setLoading(true, isSearchMode ? "正在 Google 搜尋..." : "AI 思考中...");
+            setLoading(true, currentMode === 'search' ? "正在 Google 搜尋..." : "AI 思考中...");
             
             try {
-                let payload = { message: text, session_id: sessId, enable_search: isSearchMode };
+                let payload = { 
+                    message: text, 
+                    session_id: sessId, 
+                    mode: currentMode // 👈 關鍵：傳送選擇的模式給後端
+                };
+
                 if (activeFile) {
                     const base64 = await toBase64(activeFile);
                     payload.file_data = base64.split(',')[1];
@@ -211,15 +202,12 @@
                 else { addMessage('ai', "⚠️ Error: " + data.error); }
 
             } catch (e) { addMessage('ai', "❌ Failed"); } 
-            finally { 
-                setLoading(false); 
-                if (isSearchMode) toggleSearchMode(); 
-            }
+            finally { setLoading(false); }
         }
 
         function toBase64(f) { return new Promise(r=>{ const rd=new FileReader(); rd.onload=()=>r(rd.result); rd.readAsDataURL(f); }); }
-        function addMessage(role, text) { const d=document.createElement('div'); d.className=`flex ${role==='user'?'justify-end':'justify-start'} mb-4`; const b=document.createElement('div'); b.className=`max-w-[85%] p-3 rounded-2xl ${role==='user'?'bg-blue-700 text-white':'bg-slate-800 text-slate-200'} prose prose-invert prose-sm`; b.innerHTML=marked.parse(text); d.appendChild(b); chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }
-        function setLoading(l,t) { btn.disabled=l; if(l){ const d=document.createElement('div'); d.id='loader'; d.className='text-blue-400 text-xs font-mono mb-4 animate-pulse'; d.innerText="⚡ "+t; chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }else{ const e=document.getElementById('loader'); if(e)e.remove(); } }
+        function addMessage(role, text) { const d=document.createElement('div'); d.className=`flex ${role==='user'?'justify-end':'justify-start'} mb-4`; const b=document.createElement('div'); b.className=`max-w-[85%] p-3 rounded-2xl ${role==='user'?'bg-cyan-700 text-white':'bg-slate-800 text-slate-200'} prose prose-invert prose-sm`; b.innerHTML=marked.parse(text); d.appendChild(b); chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }
+        function setLoading(l,t) { btn.disabled=l; if(l){ const d=document.createElement('div'); d.id='loader'; d.className='text-cyan-400 text-xs font-mono mb-4 animate-pulse'; d.innerText="⚡ "+t; chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }else{ const e=document.getElementById('loader'); if(e)e.remove(); } }
     </script>
 </body>
 </html>
