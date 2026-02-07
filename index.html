@@ -16,8 +16,6 @@
         .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); margin: 12px 0; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
-        .recording-pulse { animation: pulse-red 1.5s infinite; background-color: #ef4444 !important; }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     </style>
 </head>
 <body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden">
@@ -54,43 +52,41 @@
             <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5 active:scale-95">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             </button>
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white outline-none focus:border-emerald-500/50 transition-all placeholder-slate-600 shadow-inner text-sm" placeholder="正在啟動引擎...">
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white outline-none focus:border-emerald-500/50 transition-all placeholder-slate-600 shadow-inner text-sm" placeholder="引擎準備中...">
             <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-all uppercase italic tracking-tighter disabled:opacity-50">Send</button>
         </div>
     </footer>
 
     <script>
-        // ✅ 網址已配置
+        // ✅ 網址已精確替換
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
 
-        const chatWindow = document.getElementById('chat-window');
-        const input = document.getElementById('user-input');
-        const btn = document.getElementById('send-btn');
-        const fileStatus = document.getElementById('file-status');
-        const scanner = document.getElementById('image-scanner');
-        const modeSelect = document.getElementById('mode-select');
-        const sessId = "V202_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const chatWindow = document.getElementById('chat-window'),
+              input = document.getElementById('user-input'),
+              btn = document.getElementById('send-btn'),
+              fileStatus = document.getElementById('file-status'),
+              scanner = document.getElementById('image-scanner'),
+              modeSelect = document.getElementById('mode-select'),
+              sessId = "V202_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         
         let activeFile = null;
 
-        // 🟢 UI 模式切換邏輯
         function updateModeUI() {
             const m = modeSelect.value;
             const themes = {
-                chat: { placeholder: "💬 高速 Flash 對話中...", color: "bg-emerald-600" },
-                search: { placeholder: "🌍 Deep Research 聯網搜尋...", color: "bg-blue-600" },
-                drawing: { placeholder: "🎨 Nano-Banana 藝術創作...", color: "bg-pink-600" },
-                presentation: { placeholder: "📊 簡報建築師模式 (自動規劃+生圖)...", color: "bg-orange-600" }
+                chat: { placeholder: "💬 高速對話模式...", color: "bg-emerald-600" },
+                search: { placeholder: "🌍 深度研究搜尋...", color: "bg-blue-600" },
+                drawing: { placeholder: "🎨 視覺生圖模式...", color: "bg-pink-600" },
+                presentation: { placeholder: "📊 自動簡報規劃...", color: "bg-orange-600" }
             };
             input.placeholder = themes[m].placeholder;
-            btn.className = `${themes[m].color} text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all shadow-lg shadow-black/20 disabled:opacity-50 uppercase italic tracking-tighter`;
+            btn.className = `${themes[m].color} text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all shadow-lg disabled:opacity-50 uppercase italic tracking-tighter`;
         }
         updateModeUI();
 
-        // 📷 檔案處理
         document.getElementById('file-upload').onchange = async (e) => {
             if(e.target.files[0]) {
-                setLoading(true, "Optimizing Image...");
+                setLoading(true, "Processing...");
                 activeFile = await compressImage(e.target.files[0]);
                 fileStatus.classList.remove('hidden');
                 document.getElementById('filename-display').innerText = activeFile.name;
@@ -98,19 +94,14 @@
             }
         };
 
-        // 🚀 發送核心 (含 Latency Guard)
         async function handleSend() {
             const text = input.value.trim();
             if((!text && !activeFile) || btn.disabled) return;
 
             addMessage('user', text);
-            const payload = { 
-                message: text, 
-                session_id: sessId, 
-                mode: modeSelect.value 
-            };
-            
+            const payload = { message: text, session_id: sessId, mode: modeSelect.value };
             input.value = '';
+            
             if(activeFile) {
                 scanner.classList.remove('hidden');
                 payload.file_data = (await toBase64(activeFile)).split(',')[1];
@@ -118,9 +109,7 @@
                 clearFile();
             }
 
-            setLoading(true, modeSelect.value === 'search' ? "Searching Web..." : "Processing...");
-
-            // ✨ Latency Guard: 前端超時控制 (30秒)
+            setLoading(true, "Connecting...");
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -131,23 +120,17 @@
                     signal: controller.signal 
                 });
                 clearTimeout(timeoutId);
-
                 const data = await res.json();
                 if(data.status === "success") {
-                    addMessage('ai', data.reply, { 
-                        model: data.model, 
-                        cached: data.cached, 
-                        image: data.image, 
-                        mime: data.mime 
-                    });
+                    addMessage('ai', data.reply, { model: data.model, cached: data.cached, image: data.image, mime: data.mime });
                 } else {
-                    addMessage('ai', "🚨 系統繁忙: " + data.error);
+                    addMessage('ai', "🚨 系統負載中: " + data.error);
                 }
             } catch (e) {
                 if (e.name === 'AbortError') {
-                    addMessage('ai', "❌ 連線超時: Google 伺服器回應超過 30 秒，請嘗試重新整理或簡化您的指令。");
+                    addMessage('ai', "❌ 連線超時：回應超過 30 秒，請確認後端權限或重試。");
                 } else {
-                    addMessage('ai', "❌ 網路連線失敗: 請確認您的網路狀態或 API 額度。");
+                    addMessage('ai', "❌ 網路連線失敗：請確認 GAS 部署是否設為「所有人」。");
                 }
             } finally {
                 setLoading(false);
@@ -155,36 +138,30 @@
             }
         }
 
-        // 💬 訊息渲染 (修復 undefined 與圖片顯示)
         function addMessage(role, text, meta = null) {
             const wrapper = document.createElement('div');
             wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`;
-            
             const msgBox = document.createElement('div');
-            msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white shadow-lg shadow-emerald-900/10' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl backdrop-blur-sm`;
+            msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white shadow-lg' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl backdrop-blur-sm`;
 
-            // 1. 處理圖片回傳
             if(meta && meta.image) {
                 const img = document.createElement('img');
                 img.src = `data:${meta.mime || 'image/png'};base64,${meta.image}`;
-                img.className = "w-full rounded-lg mb-3 shadow-lg border border-white/10 cursor-zoom-in";
-                img.onclick = () => window.open(img.src);
+                img.className = "w-full rounded-lg mb-3 shadow-lg";
                 msgBox.appendChild(img);
             }
 
-            // 2. 處理文字回傳 (修復 undefined)
-            const safeText = (text && text !== "undefined") ? text : (meta && meta.image ? "🎨 *已為您生成圖像*" : "");
+            const safeText = (text && text !== "undefined") ? text : (meta && meta.image ? "🎨 *已完成生圖任務*" : "");
             if (safeText) {
-                const textContent = document.createElement('div');
-                textContent.innerHTML = marked.parse(safeText);
-                msgBox.appendChild(textContent);
+                const textNode = document.createElement('div');
+                textNode.innerHTML = marked.parse(safeText);
+                msgBox.appendChild(textNode);
             }
 
-            // 3. 顯示模型資訊
             if(meta) {
                 const info = document.createElement('div');
                 info.className = "mt-4 pt-2 border-t border-white/5 opacity-30 text-[8px] font-mono italic flex justify-between";
-                info.innerHTML = `<span>NODE: ${meta.model}</span> <span>${meta.cached ? '[SEMANTIC-CACHE]' : ''}</span>`;
+                info.innerHTML = `<span>NODE: ${meta.model}</span> <span>${meta.cached ? '[L2-CACHE]' : ''}</span>`;
                 msgBox.appendChild(info);
             }
 
@@ -194,7 +171,6 @@
             if (window.hljs) hljs.highlightAll();
         }
 
-        // 🛠️ 輔助工具函式
         function setLoading(l, t) {
             btn.disabled = l;
             if(l){
