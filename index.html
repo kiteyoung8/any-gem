@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v20.3 : Final Bridge</title>
+    <title>anyGem v20.4 : Clipboard Integration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -13,9 +13,10 @@
         .animate-scan { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(16, 185, 129, 0.2), transparent); animation: scanline 3s linear infinite; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
-        .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); margin: 12px 0; }
+        .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); margin: 12px 0; position: relative; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        .copy-btn-active { background-color: #10b981 !important; color: white !important; }
     </style>
 </head>
 <body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden">
@@ -24,11 +25,11 @@
         <div class="flex flex-col">
             <div class="flex items-center space-x-2">
                 <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_12px_#10b981]"></div>
-                <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v20.3</span></span>
+                <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v20.4</span></span>
             </div>
-            <span class="text-[8px] text-emerald-400 font-mono tracking-[0.2em] uppercase opacity-70">Bridge Protocol Active</span>
+            <span class="text-[8px] text-emerald-400 font-mono tracking-[0.2em] uppercase opacity-70">Clipboard & Bridge Active</span>
         </div>
-        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 focus:border-emerald-500 outline-none font-bold">
+        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 focus:border-emerald-500 outline-none font-bold cursor-pointer">
             <option value="chat">💬 高速對話</option>
             <option value="search">🌍 深度研究</option>
             <option value="drawing">🎨 藝術生圖</option>
@@ -39,17 +40,17 @@
     <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 scroll-smooth bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.05),transparent)]"></main>
 
     <div id="file-status" class="hidden px-4 pb-2 text-xs text-emerald-400 flex items-center gap-2 animate-fade-in">
-        <div class="relative overflow-hidden rounded-lg bg-emerald-900/20 p-2 border border-emerald-500/30">
+        <div class="relative overflow-hidden rounded-lg bg-emerald-900/20 p-2 border border-emerald-500/30 backdrop-blur-md">
             <span id="filename-display" class="font-bold text-white truncate max-w-[150px]"></span>
             <div id="image-scanner" class="hidden animate-scan"></div>
         </div>
-        <button onclick="clearFile()" class="text-slate-500 hover:text-white px-2 ml-auto">✕</button>
+        <button onclick="clearFile()" class="text-slate-500 hover:text-white px-2 ml-auto transition-colors">✕</button>
     </div>
 
     <footer class="p-3 bg-[#0f172a] border-t border-emerald-900/30 pb-8 md:pb-4 shadow-2xl">
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
             <input type="file" id="file-upload" class="hidden" accept="image/*">
-            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5">
+            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5 active:scale-95">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             </button>
             <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white outline-none focus:border-emerald-500/50 transition-all text-sm" placeholder="輸入訊息...">
@@ -67,7 +68,7 @@
               fileStatus = document.getElementById('file-status'),
               scanner = document.getElementById('image-scanner'),
               modeSelect = document.getElementById('mode-select'),
-              sessId = "BRIDGE_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+              sessId = "CLIP_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         
         let activeFile = null;
 
@@ -88,7 +89,6 @@
             }
         };
 
-        // 🚀 核心優化：GAS 專用通訊協定
         async function handleSend() {
             const text = input.value.trim();
             if((!text && !activeFile) || btn.disabled) return;
@@ -107,10 +107,8 @@
             setLoading(true, "Transmitting...");
 
             try {
-                // ✨ 重大修正：改用 text/plain 避免 Preflight，並強制 follow 導向
                 const res = await fetch(GAS_URL, { 
                     method: 'POST', 
-                    // 使用 text/plain 是為了繞過複雜的 CORS 預檢請求
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload),
                     redirect: 'follow' 
@@ -123,46 +121,80 @@
                     addMessage('ai', "🚨 伺服器回報: " + data.error);
                 }
             } catch (e) {
-                addMessage('ai', "❌ 連線失敗：伺服器拒絕請求。請確認 GAS 腳本中 doPost 函式是否正確處理 JSON 資料。");
+                addMessage('ai', "❌ 連線失敗：請確認 GAS 部署是否設為「所有人」且後端已手動執行授權。");
             } finally {
                 setLoading(false);
                 scanner.classList.add('hidden');
             }
         }
 
+        // 💬 訊息渲染 (新增複製按鈕功能)
         function addMessage(role, text, meta = null) {
-            const w = document.createElement('div');
-            w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`;
-            const m = document.createElement('div');
-            m.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl`;
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`;
+            
+            const msgBox = document.createElement('div');
+            msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl relative`;
 
+            // 1. 處理圖片
             if(meta && meta.image) {
                 const img = document.createElement('img');
                 img.src = `data:${meta.mime || 'image/png'};base64,${meta.image}`;
-                img.className = "w-full rounded-lg mb-3 shadow-lg";
-                m.appendChild(img);
+                img.className = "w-full rounded-lg mb-3 shadow-lg border border-white/10";
+                msgBox.appendChild(img);
             }
 
+            // 2. 處理文字
             const safeText = (text && text !== "undefined") ? text : (meta && meta.image ? "🎨 *已完成生圖*" : "");
             if (safeText) {
                 const tNode = document.createElement('div');
                 tNode.innerHTML = marked.parse(safeText);
-                m.appendChild(tNode);
+                msgBox.appendChild(tNode);
+
+                // ✨ v20.4 新增：一鍵複製按鈕 (僅限 AI 回覆)
+                if (role === 'ai') {
+                    const copyBar = document.createElement('div');
+                    copyBar.className = "mt-4 pt-2 border-t border-white/5 flex justify-end";
+                    
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = "text-[10px] bg-slate-700/50 hover:bg-emerald-600 text-slate-400 hover:text-white px-3 py-1 rounded-lg transition-all flex items-center gap-1 uppercase font-bold tracking-tighter";
+                    copyBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3" />
+                        </svg> Copy Text
+                    `;
+                    
+                    copyBtn.onclick = () => {
+                        navigator.clipboard.writeText(safeText).then(() => {
+                            const originalHTML = copyBtn.innerHTML;
+                            copyBtn.innerHTML = "✅ Copied!";
+                            copyBtn.classList.add('copy-btn-active');
+                            setTimeout(() => {
+                                copyBtn.innerHTML = originalHTML;
+                                copyBtn.classList.remove('copy-btn-active');
+                            }, 2000);
+                        });
+                    };
+                    copyBar.appendChild(copyBtn);
+                    msgBox.appendChild(copyBar);
+                }
             }
 
+            // 3. 模型標籤
             if(meta) {
                 const i = document.createElement('div');
-                i.className = "mt-4 pt-2 border-t border-white/5 opacity-30 text-[8px] font-mono italic flex justify-between";
-                i.innerHTML = `<span>NODE: ${meta.model}</span> <span>${meta.cached ? '[FAST-CACHE]' : ''}</span>`;
-                m.appendChild(i);
+                i.className = "mt-2 opacity-30 text-[8px] font-mono italic flex justify-between";
+                i.innerHTML = `<span>NODE: ${meta.model}</span> <span>${meta.cached ? '[L2-CACHE]' : ''}</span>`;
+                msgBox.appendChild(i);
             }
 
-            w.appendChild(m);
-            chatWindow.appendChild(w);
+            wrapper.appendChild(msgBox);
+            chatWindow.appendChild(wrapper);
             chatWindow.scrollTop = chatWindow.scrollHeight;
             if (window.hljs) hljs.highlightAll();
         }
 
+        // 🛠️ 輔助函式 (保持不變)
         function setLoading(l, t) {
             btn.disabled = l;
             if(l){
@@ -177,7 +209,6 @@
                 if(e) e.remove();
             }
         }
-
         function toBase64(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); }); }
         function clearFile() { activeFile = null; fileStatus.classList.add('hidden'); scanner.classList.add('hidden'); }
         function compressImage(f) { 
