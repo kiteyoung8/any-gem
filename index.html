@@ -3,284 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v16.0 : Resilience Edition</title>
+    <title>anyGem v16.1 : Resilience Framework</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
-        /* 基礎動畫 */
-        .loading-dots::after { content: '.'; animation: dots 1.5s infinite; }
-        @keyframes dots { 0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; } }
-        
-        /* Cyberpunk 掃描線動畫 */
-        @keyframes scanline {
-            0% { transform: translateY(-100%); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(200%); opacity: 0; }
-        }
-        .animate-scan {
-            position: absolute; top: 0; left: 0; right: 0; height: 40%;
-            background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.3), transparent);
-            animation: scanline 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-            pointer-events: none;
-        }
-
-        /* 內容上浮動畫 */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes scanline { 0% { transform: translateY(-100%); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(200%); opacity: 0; } }
+        .animate-scan { position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.3), transparent); animation: scanline 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; pointer-events: none; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
-
-        /* 快取標籤脈衝 */
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.2); }
-            50% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); }
-        }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.2); } 50% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); } }
         .cache-badge { animation: pulse-glow 2s infinite; }
-
-        .prose pre { background: #1a1b26 !important; border-radius: 8px; margin-top: 10px; }
         .recording-pulse { animation: pulse-red 1.5s infinite; background-color: #ef4444 !important; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-
         select { appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23cbd5e1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 0.7rem top 50%; background-size: 0.65rem auto; }
+        .prose pre { background: #1a1b26 !important; border-radius: 8px; margin-top: 10px; }
     </style>
 </head>
 <body class="bg-[#0f172a] text-slate-300 h-screen flex flex-col font-sans overflow-hidden">
 
-    <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center sticky top-0 z-50 shadow-md">
+    <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center z-50 shadow-md">
         <div class="flex flex-col">
             <div class="flex items-center space-x-2">
-                <div class="w-2.5 h-2.5 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_#06b6d4]"></div>
-                <span class="text-lg font-black text-white tracking-tighter uppercase">anyGem <span class="text-cyan-400">v16.0</span></span>
+                <div class="w-2.5 h-2.5 bg-cyan-500 rounded-full animate-pulse"></div>
+                <span class="text-lg font-black text-white tracking-tighter uppercase">anyGem <span class="text-cyan-400">v16.1</span></span>
             </div>
-            <span class="text-[9px] text-slate-500 font-mono tracking-widest mt-0.5">RESILIENCE ENGINE ACTIVE</span>
         </div>
-        
-        <select id="mode-select" onchange="updateModeUI()" class="bg-slate-700/50 text-white text-xs py-1.5 pl-3 pr-8 rounded-lg border border-slate-600 focus:outline-none focus:border-cyan-500 transition shadow-sm font-bold tracking-wide">
+        <select id="mode-select" onchange="updateModeUI()" class="bg-slate-700/50 text-white text-xs py-1.5 pl-3 pr-8 rounded-lg border border-slate-600 focus:outline-none focus:border-cyan-500 transition font-bold">
             <option value="chat">💬 閒聊模式</option>
             <option value="search">🌍 聯網搜尋</option>
             <option value="assistant">📅 私人助理</option>
         </select>
     </header>
 
-    <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 w-full scroll-smooth bg-gradient-to-b from-[#0f172a] to-[#1e293b]/20"></main>
+    <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 scroll-smooth bg-gradient-to-b from-[#0f172a] to-[#1e293b]/20"></main>
 
     <div id="file-status" class="hidden px-4 pb-2 text-xs text-cyan-400 flex items-center gap-2 animate-fade-in-up">
         <div class="relative overflow-hidden rounded bg-slate-800 p-1 px-2 border border-slate-700">
             <span id="filename-display" class="font-bold text-white truncate max-w-[150px]"></span>
             <div id="image-scanner" class="hidden animate-scan absolute inset-0"></div>
         </div>
-        <span id="filesize-display" class="text-slate-500 text-[10px]"></span>
-        <button onclick="clearFile()" class="text-slate-400 hover:text-white px-2 ml-auto">✕</button>
+        <button onclick="clearFile()" class="text-slate-400 px-2 ml-auto">✕</button>
     </div>
 
-    <footer class="p-3 bg-[#1e293b] border-t border-slate-800 pb-8 md:pb-4 shadow-[0_-4px_20px_rgba(0,0,0,0.3)]">
+    <footer class="p-3 bg-[#1e293b] border-t border-slate-800 pb-8 md:pb-4">
         <div class="flex gap-2 items-center max-w-4xl mx-auto">
-            
-            <input type="file" id="file-upload" class="hidden" accept="image/*,.pdf,.txt">
-            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-700/50 p-3 rounded-xl text-slate-300 shrink-0 hover:bg-slate-600 hover:text-white transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-            </button>
-
-            <button onclick="openCamera()" class="bg-slate-700/50 p-3 rounded-xl text-slate-300 shrink-0 hover:bg-green-600 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            </button>
-
-            <button id="mic-btn" onclick="toggleDictation()" class="bg-slate-700/50 p-3 rounded-xl text-slate-300 shrink-0 hover:bg-red-500 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-            </button>
-
-            <input type="text" id="user-input" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3 focus:border-cyan-500 text-white outline-none transition-all placeholder-slate-600 text-sm" placeholder="輸入訊息..." autocomplete="off">
-            
-            <button onclick="handleSend()" id="send-btn" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-3 rounded-xl font-bold shrink-0 shadow-lg shadow-cyan-900/20 active:scale-95 transition-all disabled:opacity-50">SEND</button>
+            <input type="file" id="file-upload" class="hidden" accept="image/*">
+            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-700/50 p-3 rounded-xl"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg></button>
+            <button onclick="openCamera()" class="bg-slate-700/50 p-3 rounded-xl"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg></button>
+            <button id="mic-btn" onclick="toggleDictation()" class="bg-slate-700/50 p-3 rounded-xl"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg></button>
+            <input type="text" id="user-input" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm" placeholder="輸入訊息...">
+            <button onclick="handleSend()" id="send-btn" class="bg-cyan-600 text-white px-5 py-3 rounded-xl font-bold">SEND</button>
         </div>
     </footer>
 
-    <div id="camera-modal" class="hidden fixed inset-0 bg-black/98 z-[60] flex flex-col items-center justify-center backdrop-blur-xl">
+    <div id="camera-modal" class="hidden fixed inset-0 bg-black/98 z-[60] flex flex-col items-center justify-center">
         <video id="video-feed" autoplay playsinline class="w-full max-h-[75vh] object-contain"></video>
         <canvas id="camera-canvas" class="hidden"></canvas>
-        <div class="absolute bottom-12 w-full flex justify-around px-8 items-center">
-            <button onclick="closeCamera()" class="text-white/70 text-sm font-medium hover:text-white">取消</button>
-            <button onclick="takePhoto()" class="w-20 h-20 rounded-full border-4 border-white/30 bg-white/10 active:scale-90 transition-all flex items-center justify-center"><div class="w-16 h-16 rounded-full bg-white"></div></button>
-            <button onclick="switchCamera()" class="text-white/70 text-sm font-medium hover:text-white">翻轉</button>
+        <div class="absolute bottom-12 w-full flex justify-around items-center">
+            <button onclick="closeCamera()" class="text-white/70">取消</button>
+            <button onclick="takePhoto()" class="w-20 h-20 rounded-full border-4 border-white/30 bg-white/10 flex items-center justify-center"><div class="w-16 h-16 rounded-full bg-white"></div></button>
+            <button onclick="switchCamera()" class="text-white/70">翻轉</button>
         </div>
     </div>
 
     <script>
-        // ✅ 網址已自動填入
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), fileStatus = document.getElementById('file-status'), scanner = document.getElementById('image-scanner'), micBtn = document.getElementById('mic-btn'), modeSelect = document.getElementById('mode-select'), sessId = "SESS_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        let activeFile = null, videoStream = null, useFrontCamera = false, isRecording = false, recognition = ('webkitSpeechRecognition' in window) ? new webkitSpeechRecognition() : null;
 
-        const chatWindow = document.getElementById('chat-window');
-        const input = document.getElementById('user-input');
-        const btn = document.getElementById('send-btn');
-        const fileInput = document.getElementById('file-upload');
-        const fileStatus = document.getElementById('file-status');
-        const scanner = document.getElementById('image-scanner');
-        const micBtn = document.getElementById('mic-btn');
-        const modeSelect = document.getElementById('mode-select');
-        const sessId = "User_" + Math.random().toString(36).substr(2, 6).toUpperCase();
-
-        let activeFile = null;
-        let videoStream = null;
-        let useFrontCamera = false;
-
-        function updateModeUI() {
-            const mode = modeSelect.value;
-            const themes = {
-                search: { placeholder: "🌍 正在準備聯網搜尋...", btn: "bg-blue-600 hover:bg-blue-500" },
-                assistant: { placeholder: "📅 準備安排行程助理...", btn: "bg-purple-600 hover:bg-purple-500" },
-                chat: { placeholder: "💬 隨意聊聊吧...", btn: "bg-cyan-600 hover:bg-cyan-500" }
-            };
-            input.placeholder = themes[mode].placeholder;
-            btn.className = `${themes[mode].btn} text-white px-5 py-3 rounded-xl font-bold shrink-0 transition-all active:scale-95 disabled:opacity-50`;
-        }
+        if(recognition) { recognition.lang = 'cmn-Hant-TW'; recognition.onresult = (e) => { input.value = e.results[0][0].transcript; }; recognition.onend = () => { micBtn.classList.remove('recording-pulse'); isRecording = false; }; }
+        function toggleDictation() { if(!recognition) return; if(isRecording) { recognition.stop(); } else { recognition.start(); micBtn.classList.add('recording-pulse'); isRecording = true; } }
+        function updateModeUI() { input.placeholder = modeSelect.value === 'search' ? "🌍 聯網搜尋模式..." : (modeSelect.value === 'assistant' ? "📅 助理模式..." : "💬 隨意聊聊..."); }
         updateModeUI();
 
-        // 🎙️ 語音辨識
-        let recognition = null;
-        let isRecording = false;
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = true;
-            recognition.lang = 'cmn-Hant-TW';
-            recognition.onresult = (e) => { input.value = Array.from(e.results).map(r => r[0].transcript).join(''); };
-            recognition.onend = () => { micBtn.classList.remove('recording-pulse'); isRecording = false; };
-        }
+        document.getElementById('file-upload').addEventListener('change', async (e) => { if(e.target.files[0]) { setLoading(true, "處理中..."); activeFile = await compressImage(e.target.files[0]); fileStatus.classList.remove('hidden'); document.getElementById('filename-display').innerText = activeFile.name; setLoading(false); } });
+        function compressImage(f) { return new Promise(r => { const i = new Image(); i.src = URL.createObjectURL(f); i.onload = () => { const c = document.createElement('canvas'), MAX = 1200; let w = i.width, h = i.height; if(w>h && w>MAX){ h*=MAX/w; w=MAX; }else if(h>MAX){ w*=MAX/h; h=MAX; } c.width=w; c.height=h; c.getContext('2d').drawImage(i,0,0,w,h); c.toBlob(b=>r(new File([b],f.name,{type:"image/jpeg"})),'image/jpeg',0.8); }; }); }
+        function clearFile() { activeFile = null; fileStatus.classList.add('hidden'); scanner.classList.add('hidden'); }
 
-        function toggleDictation() {
-            if (!recognition) return;
-            if (isRecording) { recognition.stop(); } 
-            else { recognition.start(); micBtn.classList.add('recording-pulse'); isRecording = true; }
-        }
-
-        // 🖼️ 圖片預優化
-        fileInput.addEventListener('change', async (e) => {
-            if (e.target.files.length > 0) {
-                let file = e.target.files[0];
-                if (file.type.startsWith('image/')) {
-                    setLoading(true, "視覺神經優化中...");
-                    file = await compressImage(file);
-                    setLoading(false);
-                }
-                setFile(file);
-            }
-        });
-
-        async function compressImage(f) {
-            return new Promise(r => {
-                const i = new Image();
-                i.src = URL.createObjectURL(f);
-                i.onload = () => {
-                    const c = document.createElement('canvas');
-                    const MAX = 1200; 
-                    let w = i.width, h = i.height;
-                    if (w > h && w > MAX) { h *= MAX/w; w = MAX; }
-                    else if (h > MAX) { w *= MAX/h; h = MAX; }
-                    c.width = w; c.height = h;
-                    c.getContext('2d').drawImage(i,0,0,w,h);
-                    c.toBlob(b => r(new File([b], f.name, {type:"image/jpeg"})), 'image/jpeg', 0.8);
-                };
-            });
-        }
-
-        function setFile(f) {
-            activeFile = f;
-            fileStatus.classList.remove('hidden');
-            document.getElementById('filename-display').innerText = f.name;
-            document.getElementById('filesize-display').innerText = (f.size/1024).toFixed(1) + "KB";
-        }
-
-        function clearFile() {
-            activeFile = null;
-            fileInput.value = "";
-            fileStatus.classList.add('hidden');
-            scanner.classList.add('hidden');
-        }
-
-        // 🚀 發送流程 (Resilience & Telemetry)
         async function handleSend() {
-            const text = input.value.trim();
-            if ((!text && !activeFile) || btn.disabled) return;
-
-            const currentMode = modeSelect.value;
-            const modeIcons = { search: "🌍", assistant: "📅", chat: "💬" };
-            
-            addMessage('user', activeFile ? `[${activeFile.name}]\n${text}` : text);
-            input.value = '';
-            
-            if (activeFile) scanner.classList.remove('hidden'); 
-            setLoading(true, `${modeIcons[currentMode]} 正在呼叫神經網絡...`);
-
+            const text = input.value.trim(); if((!text && !activeFile) || btn.disabled) return;
+            addMessage('user', text + (activeFile ? `\n[已附圖片: ${activeFile.name}]` : ''));
+            const payload = { message: text, session_id: sessId, mode: modeSelect.value };
+            input.value = ''; if(activeFile) { scanner.classList.remove('hidden'); payload.file_data = (await toBase64(activeFile)).split(',')[1]; payload.mime_type = activeFile.type; clearFile(); }
+            setLoading(true, "呼叫 AI 中...");
             try {
-                let payload = { message: text, session_id: sessId, mode: currentMode };
-                if (activeFile) {
-                    const base64 = await toBase64(activeFile);
-                    payload.file_data = base64.split(',')[1];
-                    payload.mime_type = activeFile.type;
-                    clearFile();
-                }
-
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const data = await res.json();
-                
-                if (data.status === "success") {
-                    const info = `\n\n<div class="flex items-center gap-2 mt-2 opacity-50 text-[10px] font-mono">
-                        <span>MODEL: ${data.model || 'Fallback-Service'}</span>
-                        ${data.cached ? '<span class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded-md cache-badge">✨ CACHED</span>' : ''}
-                    </div>`;
-                    addMessage('ai', data.reply + info);
-                } else {
-                    addMessage('ai', "🚨 **系統異常回報:** " + data.error);
-                }
-            } catch (e) {
-                addMessage('ai', "❌ **連線超時:** 目前伺服器負載較重，請稍後再試。");
-            } finally {
-                setLoading(false);
-                scanner.classList.add('hidden');
-            }
+                if(data.status === "success") { addMessage('ai', data.reply, { model: data.model, cached: data.cached }); }
+                else { addMessage('ai', "🚨 系統錯誤: " + data.error); }
+            } catch (e) { addMessage('ai', "❌ 連線超時，請重試。"); } finally { setLoading(false); scanner.classList.add('hidden'); }
         }
 
         function toBase64(f) { return new Promise(r=>{ const rd=new FileReader(); rd.onload=()=>r(rd.result); rd.readAsDataURL(f); }); }
-        
-        function addMessage(role, text) {
-            const wrapper = document.createElement('div');
-            wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`;
-            
-            const msgBox = document.createElement('div');
-            msgBox.className = `max-w-[88%] p-4 rounded-2xl shadow-sm ${role === 'user' ? 'bg-cyan-700 text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700/50'} prose prose-invert prose-sm`;
-            msgBox.innerHTML = marked.parse(text);
-            
-            wrapper.appendChild(msgBox);
-            chatWindow.appendChild(wrapper);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-            if (window.hljs) hljs.highlightAll();
+        function addMessage(role, text, meta = null) {
+            const w = document.createElement('div'); w.className = `flex ${role==='user'?'justify-end':'justify-start'} animate-fade-in-up`;
+            const m = document.createElement('div'); m.className = `max-w-[88%] p-4 rounded-2xl ${role==='user'?'bg-cyan-700 text-white':'bg-slate-800 text-slate-200 border border-slate-700/50'} prose prose-invert prose-sm`;
+            m.innerHTML = marked.parse(text || "");
+            if(meta) { const i = document.createElement('div'); i.className = "flex items-center gap-2 mt-4 pt-2 border-t border-white/5 opacity-40 text-[9px] font-mono uppercase"; i.innerHTML = `<span>${meta.model}</span>${meta.cached?'<span class="text-green-400 cache-badge">● CACHED</span>':''}`; m.appendChild(i); }
+            w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight; hljs.highlightAll();
         }
-
-        function setLoading(l, t) {
-            btn.disabled = l;
-            if (l) {
-                const loader = document.createElement('div');
-                loader.id = 'loader';
-                loader.className = 'flex items-center gap-2 text-cyan-500 text-[10px] font-black tracking-widest animate-pulse mt-2';
-                loader.innerHTML = `<div class="w-1.5 h-1.5 bg-cyan-500 rounded-full"></div> ⚡ ${t.toUpperCase()}`;
-                chatWindow.appendChild(loader);
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-            } else {
-                const e = document.getElementById('loader');
-                if (e) e.remove();
-            }
-        }
-
+        function setLoading(l, t) { btn.disabled = l; if(l){ const d=document.createElement('div'); d.id='loader'; d.className='text-cyan-500 text-[10px] font-black animate-pulse mt-2'; d.innerHTML = `⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }else{ const e=document.getElementById('loader'); if(e)e.remove(); } }
         async function openCamera() { document.getElementById('camera-modal').classList.remove('hidden'); startVideo(); }
         async function closeCamera() { document.getElementById('camera-modal').classList.add('hidden'); if(videoStream) videoStream.getTracks().forEach(t=>t.stop()); }
         async function startVideo() { const c={video:{facingMode:useFrontCamera?"user":"environment"}}; videoStream=await navigator.mediaDevices.getUserMedia(c); document.getElementById('video-feed').srcObject=videoStream; }
         function switchCamera() { useFrontCamera=!useFrontCamera; startVideo(); }
-        function takePhoto() { const v=document.getElementById('video-feed'); const c=document.getElementById('camera-canvas'); c.width=1024; c.height=v.videoHeight*(1024/v.videoWidth); c.getContext('2d').drawImage(v,0,0,c.width,c.height); c.toBlob(b=>{ setFile(new File([b],"camera_shot.jpg",{type:"image/jpeg"})); closeCamera(); },'image/jpeg',0.8); }
+        function takePhoto() { const v=document.getElementById('video-feed'), c=document.getElementById('camera-canvas'); c.width=1024; c.height=v.videoHeight*(1024/v.videoWidth); c.getContext('2d').drawImage(v,0,0,c.width,c.height); c.toBlob(b=>{ activeFile=new File([b],"shot.jpg",{type:"image/jpeg"}); fileStatus.classList.remove('hidden'); document.getElementById('filename-display').innerText="Camera_Shot.jpg"; closeCamera(); },'image/jpeg',0.8); }
     </script>
 </body>
 </html>
