@@ -3,22 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v17.2 : Heavy Artillery Edition</title>
+    <title>anyGem v17.3 : Time-Sync Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
-        /* 科技感動畫 */
         @keyframes scanline { 0% { transform: translateY(-100%); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(200%); opacity: 0; } }
         .animate-scan { position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to bottom, transparent, rgba(34, 211, 238, 0.3), transparent); animation: scanline 2.5s infinite; pointer-events: none; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
-        .cache-badge { animation: pulse-glow 2s infinite; }
-        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.2); } 50% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); } }
+        .prose pre { background: #1a1b26 !important; border-radius: 8px; margin-top: 10px; }
         .recording-pulse { animation: pulse-red 1.5s infinite; background-color: #ef4444 !important; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-        .prose pre { background: #1a1b26 !important; border-radius: 8px; margin-top: 10px; }
         select { appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23cbd5e1%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 0.7rem top 50%; background-size: 0.6rem auto; }
     </style>
 </head>
@@ -27,12 +24,12 @@
     <header class="p-4 border-b border-slate-800 bg-[#1e293b] flex justify-between items-center z-50 shadow-xl">
         <div class="flex flex-col">
             <div class="flex items-center space-x-2">
-                <div class="w-2.5 h-2.5 bg-pink-500 rounded-full animate-pulse shadow-[0_0_8px_#ec4899]"></div>
-                <span class="text-lg font-black text-white tracking-tighter uppercase">anyGem <span class="text-pink-500">v17.2</span></span>
+                <div class="w-2.5 h-2.5 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_8px_#06b6d4]"></div>
+                <span class="text-lg font-black text-white tracking-tighter uppercase">anyGem <span class="text-cyan-400">v17.3</span></span>
             </div>
-            <span class="text-[8px] text-slate-500 font-mono tracking-widest uppercase">Resilience Framework v2.0</span>
+            <span class="text-[8px] text-slate-500 font-mono tracking-widest uppercase">Time-Sync & Search Engine</span>
         </div>
-        <select id="mode-select" onchange="updateModeUI()" class="bg-slate-700/50 text-white text-xs py-1.5 pl-3 pr-8 rounded-lg border border-slate-600 focus:outline-none focus:border-pink-500 transition font-bold">
+        <select id="mode-select" onchange="updateModeUI()" class="bg-slate-700/50 text-white text-xs py-1.5 pl-3 pr-8 rounded-lg border border-slate-600 focus:outline-none focus:border-cyan-500 transition font-bold">
             <option value="chat">💬 閒聊模式</option>
             <option value="search">🌍 聯網搜尋</option>
             <option value="assistant">📅 私人助理</option>
@@ -55,8 +52,8 @@
             <input type="file" id="file-upload" class="hidden" accept="image/*">
             <button onclick="document.getElementById('file-upload').click()" class="bg-slate-700/50 p-3 rounded-xl hover:bg-slate-600 transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg></button>
             <button onclick="openCamera()" class="bg-slate-700/50 p-3 rounded-xl hover:bg-green-600 transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg></button>
-            <input type="text" id="user-input" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm transition-all focus:border-pink-500" placeholder="輸入訊息...">
-            <button onclick="handleSend()" id="send-btn" class="bg-pink-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg shadow-pink-900/20 active:scale-95 transition-all disabled:opacity-50">SEND</button>
+            <input type="text" id="user-input" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-4 py-3 text-white outline-none text-sm transition-all focus:border-cyan-500" placeholder="輸入訊息...">
+            <button onclick="handleSend()" id="send-btn" class="bg-cyan-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg shadow-cyan-900/20 active:scale-95 transition-all disabled:opacity-50">SEND</button>
         </div>
     </footer>
 
@@ -71,16 +68,16 @@
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), fileStatus = document.getElementById('file-status'), scanner = document.getElementById('image-scanner'), modeSelect = document.getElementById('mode-select'), sessId = "V172_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), fileStatus = document.getElementById('file-status'), scanner = document.getElementById('image-scanner'), modeSelect = document.getElementById('mode-select'), sessId = "V173_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         let activeFile = null, videoStream = null, useFrontCamera = false;
 
         function updateModeUI() {
             const m = modeSelect.value;
             const cfg = {
-                drawing: { placeholder: "🎨 描述你想繪製的視覺場景...", btn: "bg-pink-600" },
-                search: { placeholder: "🌍 聯網搜尋模式啟動...", btn: "bg-blue-600" },
-                assistant: { placeholder: "📅 行程助理模式...", btn: "bg-purple-600" },
-                chat: { placeholder: "💬 隨意聊天...", btn: "bg-cyan-600" }
+                drawing: { placeholder: "🎨 視覺創作模式 (描述場景)...", btn: "bg-pink-600" },
+                search: { placeholder: "🌍 聯網搜尋模式 (即時資訊)...", btn: "bg-blue-600" },
+                assistant: { placeholder: "📅 私人助理模式...", btn: "bg-purple-600" },
+                chat: { placeholder: "💬 閒聊模式...", btn: "bg-cyan-600" }
             };
             input.placeholder = cfg[m].placeholder;
             btn.className = `${cfg[m].btn} text-white px-5 py-3 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50`;
@@ -89,7 +86,7 @@
 
         document.getElementById('file-upload').addEventListener('change', async (e) => {
             if(e.target.files[0]) {
-                setLoading(true, "視覺神經預處理...");
+                setLoading(true, "視覺神經處理中...");
                 activeFile = await compressImage(e.target.files[0]);
                 fileStatus.classList.remove('hidden');
                 document.getElementById('filename-display').innerText = activeFile.name;
@@ -114,19 +111,19 @@
 
         async function handleSend() {
             const text = input.value.trim(); if((!text && !activeFile) || btn.disabled) return;
-            addMessage('user', text + (activeFile ? `\n[已附上圖片: ${activeFile.name}]` : ''));
+            addMessage('user', text + (activeFile ? `\n[已傳送圖片: ${activeFile.name}]` : ''));
             const payload = { message: text, session_id: sessId, mode: modeSelect.value };
             input.value = ''; 
             if(activeFile) { scanner.classList.remove('hidden'); payload.file_data = (await toBase64(activeFile)).split(',')[1]; payload.mime_type = activeFile.type; clearFile(); }
-            setLoading(true, modeSelect.value === 'drawing' ? "正在繪製藝術作品..." : "AI 思考中...");
+            setLoading(true, modeSelect.value === 'search' ? "正在聯網搜尋即時數據..." : "AI 思考中...");
             
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const data = await res.json();
                 if(data.status === "success") {
                     addMessage('ai', data.reply || "", { model: data.model, cached: data.cached, image: data.image, mime: data.mime });
-                } else { addMessage('ai', "🚨 核心錯誤: " + data.error); }
-            } catch (e) { addMessage('ai', "❌ 連線超時，正在自動冷卻。"); } finally { setLoading(false); scanner.classList.add('hidden'); }
+                } else { addMessage('ai', "🚨 系統報錯: " + data.error); }
+            } catch (e) { addMessage('ai', "❌ 連線超時，請重試。"); } finally { setLoading(false); scanner.classList.add('hidden'); }
         }
 
         function toBase64(f) { return new Promise(r=>{ const rd=new FileReader(); rd.onload=()=>r(rd.result); rd.readAsDataURL(f); }); }
@@ -138,7 +135,7 @@
             if(meta && meta.image) {
                 const img = document.createElement('img');
                 img.src = `data:${meta.mime || 'image/png'};base64,${meta.image}`;
-                img.className = "w-full rounded-lg mb-3 shadow-lg hover:scale-[1.01] transition-transform cursor-zoom-in";
+                img.className = "w-full rounded-lg mb-3 shadow-lg cursor-zoom-in";
                 img.onclick = () => window.open(img.src);
                 m.appendChild(img);
             }
@@ -146,13 +143,13 @@
             const t = document.createElement('div'); t.innerHTML = marked.parse(text || ""); m.appendChild(t);
             if(meta) {
                 const i = document.createElement('div'); i.className = "flex items-center gap-2 mt-4 pt-2 border-t border-white/5 opacity-40 text-[9px] font-mono";
-                i.innerHTML = `<span>ENGINE: ${meta.model}</span>${meta.cached?'<span class="text-green-400 cache-badge">● CACHED</span>':''}`;
+                i.innerHTML = `<span>ENGINE: ${meta.model}</span>${meta.cached?'<span class="text-green-400">● CACHED</span>':''}`;
                 m.appendChild(i);
             }
             w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight; hljs.highlightAll();
         }
 
-        function setLoading(l, t) { btn.disabled = l; if(l){ const d=document.createElement('div'); d.id='loader'; d.className='text-pink-500 text-[10px] font-black animate-pulse mt-2'; d.innerHTML = `⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }else{ const e=document.getElementById('loader'); if(e)e.remove(); } }
+        function setLoading(l, t) { btn.disabled = l; if(l){ const d=document.createElement('div'); d.id='loader'; d.className='text-cyan-500 text-[10px] font-black animate-pulse mt-2'; d.innerHTML = `⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }else{ const e=document.getElementById('loader'); if(e)e.remove(); } }
         function clearFile() { activeFile = null; fileStatus.classList.add('hidden'); scanner.classList.add('hidden'); }
         async function openCamera() { document.getElementById('camera-modal').classList.remove('hidden'); startVideo(); }
         async function closeCamera() { document.getElementById('camera-modal').classList.add('hidden'); if(videoStream) videoStream.getTracks().forEach(t=>t.stop()); }
