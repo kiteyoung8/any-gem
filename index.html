@@ -2,97 +2,229 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>anyGem v20.0 : Efficiency Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>anyGem v20.2 : Latency Guard Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
         @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }
-        .animate-scan { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(16, 185, 129, 0.2), transparent); animation: scanline 3s infinite; }
-        .animate-fade-in { animation: fadeInUp 0.4s ease-out; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .animate-scan { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(16, 185, 129, 0.2), transparent); animation: scanline 3s linear infinite; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
+        .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); margin: 12px 0; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+        .recording-pulse { animation: pulse-red 1.5s infinite; background-color: #ef4444 !important; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
     </style>
 </head>
 <body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden">
 
-    <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex justify-between items-center shadow-2xl z-50">
+    <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex justify-between items-center shadow-2xl z-50 backdrop-blur-md">
         <div class="flex flex-col">
             <div class="flex items-center space-x-2">
-                <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></div>
-                <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v20</span></span>
+                <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_12px_#10b981]"></div>
+                <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v20.2</span></span>
             </div>
-            <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Efficiency Pro Active</span>
+            <span class="text-[8px] text-emerald-400 font-mono tracking-[0.2em] uppercase opacity-70">Latency Guard Active</span>
         </div>
-        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 focus:border-emerald-500 outline-none font-bold backdrop-blur-md">
+        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 focus:border-emerald-500 outline-none font-bold cursor-pointer">
             <option value="chat">💬 高速對話</option>
             <option value="search">🌍 深度研究</option>
             <option value="drawing">🎨 藝術生圖</option>
-            <option value="presentation">📊 簡報生成</option>
+            <option value="presentation">📊 智能簡報</option>
         </select>
     </header>
 
     <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 scroll-smooth bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.05),transparent)]"></main>
 
     <div id="file-status" class="hidden px-4 pb-2 text-xs text-emerald-400 flex items-center gap-2 animate-fade-in">
-        <div class="relative overflow-hidden rounded-lg bg-emerald-900/20 p-2 border border-emerald-500/30">
+        <div class="relative overflow-hidden rounded-lg bg-emerald-900/20 p-2 border border-emerald-500/30 backdrop-blur-md">
             <span id="filename-display" class="font-bold text-white truncate max-w-[150px]"></span>
             <div id="image-scanner" class="hidden animate-scan"></div>
         </div>
-        <button onclick="clearFile()" class="text-slate-500 hover:text-white px-2 ml-auto">✕</button>
+        <button onclick="clearFile()" class="text-slate-500 hover:text-white px-2 ml-auto transition-colors">✕</button>
     </div>
 
-    <footer class="p-3 bg-[#0f172a] border-t border-emerald-900/30 pb-8 md:pb-4">
+    <footer class="p-3 bg-[#0f172a] border-t border-emerald-900/30 pb-8 md:pb-4 shadow-2xl">
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
             <input type="file" id="file-upload" class="hidden" accept="image/*">
-            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg></button>
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white outline-none focus:border-emerald-500/50 transition-all placeholder-slate-600" placeholder="啟動 Gemini 3 引擎...">
-            <button onclick="handleSend()" id="send-btn" class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white px-6 py-4 rounded-2xl font-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-all uppercase italic">Send</button>
+            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5 active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            </button>
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white outline-none focus:border-emerald-500/50 transition-all placeholder-slate-600 shadow-inner text-sm" placeholder="正在啟動引擎...">
+            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-all uppercase italic tracking-tighter disabled:opacity-50">Send</button>
         </div>
     </footer>
 
     <script>
-        const GAS_URL = "你的_GAS_網頁應用網址"; // ⚠️ 請更新此處
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), fileStatus = document.getElementById('file-status'), scanner = document.getElementById('image-scanner'), modeSelect = document.getElementById('mode-select'), sessId = "EFF_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        // ✅ 網址已配置
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
+
+        const chatWindow = document.getElementById('chat-window');
+        const input = document.getElementById('user-input');
+        const btn = document.getElementById('send-btn');
+        const fileStatus = document.getElementById('file-status');
+        const scanner = document.getElementById('image-scanner');
+        const modeSelect = document.getElementById('mode-select');
+        const sessId = "V202_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        
         let activeFile = null;
 
+        // 🟢 UI 模式切換邏輯
         function updateModeUI() {
             const m = modeSelect.value;
-            const themes = { presentation: "📊 簡報建築師模式 (自動規劃+生圖)...", search: "🌍 Deep Research 聯網搜尋...", drawing: "🎨 Nano-Banana 藝術創作...", chat: "💬 高速 Flash 對話中..." };
-            input.placeholder = themes[m];
-            btn.className = `bg-gradient-to-br from-emerald-600 to-teal-700 text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all`;
+            const themes = {
+                chat: { placeholder: "💬 高速 Flash 對話中...", color: "bg-emerald-600" },
+                search: { placeholder: "🌍 Deep Research 聯網搜尋...", color: "bg-blue-600" },
+                drawing: { placeholder: "🎨 Nano-Banana 藝術創作...", color: "bg-pink-600" },
+                presentation: { placeholder: "📊 簡報建築師模式 (自動規劃+生圖)...", color: "bg-orange-600" }
+            };
+            input.placeholder = themes[m].placeholder;
+            btn.className = `${themes[m].color} text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all shadow-lg shadow-black/20 disabled:opacity-50 uppercase italic tracking-tighter`;
         }
         updateModeUI();
 
+        // 📷 檔案處理
+        document.getElementById('file-upload').onchange = async (e) => {
+            if(e.target.files[0]) {
+                setLoading(true, "Optimizing Image...");
+                activeFile = await compressImage(e.target.files[0]);
+                fileStatus.classList.remove('hidden');
+                document.getElementById('filename-display').innerText = activeFile.name;
+                setLoading(false);
+            }
+        };
+
+        // 🚀 發送核心 (含 Latency Guard)
         async function handleSend() {
-            const text = input.value.trim(); if((!text && !activeFile) || btn.disabled) return;
+            const text = input.value.trim();
+            if((!text && !activeFile) || btn.disabled) return;
+
             addMessage('user', text);
-            const payload = { message: text, session_id: sessId, mode: modeSelect.value };
-            input.value = ''; if(activeFile) { scanner.classList.remove('hidden'); payload.file_data = (await toBase64(activeFile)).split(',')[1]; payload.mime_type = activeFile.type; clearFile(); }
-            setLoading(true, "Processing Multi-Agent Logic...");
+            const payload = { 
+                message: text, 
+                session_id: sessId, 
+                mode: modeSelect.value 
+            };
+            
+            input.value = '';
+            if(activeFile) {
+                scanner.classList.remove('hidden');
+                payload.file_data = (await toBase64(activeFile)).split(',')[1];
+                payload.mime_type = activeFile.type;
+                clearFile();
+            }
+
+            setLoading(true, modeSelect.value === 'search' ? "Searching Web..." : "Processing...");
+
+            // ✨ Latency Guard: 前端超時控制 (30秒)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+
             try {
-                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const res = await fetch(GAS_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload),
+                    signal: controller.signal 
+                });
+                clearTimeout(timeoutId);
+
                 const data = await res.json();
-                if(data.status === "success") addMessage('ai', data.reply, { model: data.model, cached: data.cached, image: data.image, mime: data.mime });
-                else addMessage('ai', "🚨 節點繁忙: " + data.error);
-            } catch (e) { addMessage('ai', "❌ 連線超時，正在自動降級。"); } finally { setLoading(false); scanner.classList.add('hidden'); }
+                if(data.status === "success") {
+                    addMessage('ai', data.reply, { 
+                        model: data.model, 
+                        cached: data.cached, 
+                        image: data.image, 
+                        mime: data.mime 
+                    });
+                } else {
+                    addMessage('ai', "🚨 系統繁忙: " + data.error);
+                }
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    addMessage('ai', "❌ 連線超時: Google 伺服器回應超過 30 秒，請嘗試重新整理或簡化您的指令。");
+                } else {
+                    addMessage('ai', "❌ 網路連線失敗: 請確認您的網路狀態或 API 額度。");
+                }
+            } finally {
+                setLoading(false);
+                scanner.classList.add('hidden');
+            }
         }
 
-        // 輔助函式 (保持不變)
+        // 💬 訊息渲染 (修復 undefined 與圖片顯示)
         function addMessage(role, text, meta = null) {
-            const w = document.createElement('div'); w.className = `flex ${role==='user'?'justify-end':'justify-start'} animate-fade-in`;
-            const m = document.createElement('div'); m.className = `max-w-[85%] p-4 rounded-2xl ${role==='user'?'bg-emerald-700/80 text-white shadow-lg shadow-emerald-900/20':'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl backdrop-blur-sm`;
-            if(meta && meta.image) { const img = document.createElement('img'); img.src = `data:${meta.mime||'image/png'};base64,${meta.image}`; img.className="w-full rounded-lg mb-3 shadow-lg border border-white/10"; m.appendChild(img); }
-            const t = document.createElement('div'); t.innerHTML = marked.parse(text || ""); m.appendChild(t);
-            if(meta) { const i = document.createElement('div'); i.className = "mt-4 pt-2 border-t border-white/5 opacity-30 text-[8px] font-mono italic flex justify-between"; i.innerHTML = `<span>NODE: ${meta.model}</span> <span>${meta.cached?'[SEMANTIC-CACHE]':''}</span>`; m.appendChild(i); }
-            w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight; hljs.highlightAll();
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`;
+            
+            const msgBox = document.createElement('div');
+            msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white shadow-lg shadow-emerald-900/10' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl backdrop-blur-sm`;
+
+            // 1. 處理圖片回傳
+            if(meta && meta.image) {
+                const img = document.createElement('img');
+                img.src = `data:${meta.mime || 'image/png'};base64,${meta.image}`;
+                img.className = "w-full rounded-lg mb-3 shadow-lg border border-white/10 cursor-zoom-in";
+                img.onclick = () => window.open(img.src);
+                msgBox.appendChild(img);
+            }
+
+            // 2. 處理文字回傳 (修復 undefined)
+            const safeText = (text && text !== "undefined") ? text : (meta && meta.image ? "🎨 *已為您生成圖像*" : "");
+            if (safeText) {
+                const textContent = document.createElement('div');
+                textContent.innerHTML = marked.parse(safeText);
+                msgBox.appendChild(textContent);
+            }
+
+            // 3. 顯示模型資訊
+            if(meta) {
+                const info = document.createElement('div');
+                info.className = "mt-4 pt-2 border-t border-white/5 opacity-30 text-[8px] font-mono italic flex justify-between";
+                info.innerHTML = `<span>NODE: ${meta.model}</span> <span>${meta.cached ? '[SEMANTIC-CACHE]' : ''}</span>`;
+                msgBox.appendChild(info);
+            }
+
+            wrapper.appendChild(msgBox);
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            if (window.hljs) hljs.highlightAll();
         }
-        function setLoading(l, t) { btn.disabled = l; if(l){ const d=document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] font-black animate-pulse uppercase tracking-[0.2em] mt-2'; d.innerHTML = `⚡ ${t}`; chatWindow.appendChild(d); chatWindow.scrollTop=chatWindow.scrollHeight; }else{ const e=document.getElementById('loader'); if(e)e.remove(); } }
-        function toBase64(f) { return new Promise(r=>{ const rd=new FileReader(); rd.onload=()=>r(rd.result); rd.readAsDataURL(f); }); }
+
+        // 🛠️ 輔助工具函式
+        function setLoading(l, t) {
+            btn.disabled = l;
+            if(l){
+                const loader = document.createElement('div');
+                loader.id = 'loader';
+                loader.className = 'text-emerald-500 text-[10px] font-black animate-pulse uppercase tracking-[0.2em] mt-2';
+                loader.innerHTML = `⚡ ${t}`;
+                chatWindow.appendChild(loader);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            } else {
+                const e = document.getElementById('loader');
+                if(e) e.remove();
+            }
+        }
+
+        function toBase64(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); }); }
         function clearFile() { activeFile = null; fileStatus.classList.add('hidden'); scanner.classList.add('hidden'); }
-        function compressImage(f) { return new Promise(r=>{ const i=new Image(); i.src=URL.createObjectURL(f); i.onload=()=>{ const c=document.createElement('canvas'), MAX=1200; let w=i.width, h=i.height; if(w>h&&w>MAX){h*=MAX/w;w=MAX;}else if(h>MAX){w*=MAX/h;h=MAX;} c.width=w; c.height=h; c.getContext('2d').drawImage(i,0,0,w,h); c.toBlob(b=>r(new File([b],f.name,{type:"image/jpeg"})),'image/jpeg',0.8); }; }); }
+        function compressImage(f) { 
+            return new Promise(r => { 
+                const i = new Image(); i.src = URL.createObjectURL(f); 
+                i.onload = () => { 
+                    const c = document.createElement('canvas'), MAX = 1200; 
+                    let w = i.width, h = i.height; 
+                    if(w > h && w > MAX) { h *= MAX/w; w = MAX; } else if(h > MAX) { w *= MAX/h; h = MAX; } 
+                    c.width = w; c.height = h; 
+                    c.getContext('2d').drawImage(i, 0, 0, w, h); 
+                    c.toBlob(b => r(new File([b], f.name, {type: "image/jpeg"})), 'image/jpeg', 0.85); 
+                }; 
+            }); 
+        }
     </script>
 </body>
 </html>
