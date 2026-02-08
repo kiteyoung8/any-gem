@@ -3,98 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v33.1 : Stable Fix</title>
+    <title>anyGem v34.0 : Smart Routing</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
-        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }
-        .animate-scan { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(16, 185, 129, 0.2), transparent); animation: scanline 3s linear infinite; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
-        .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); margin: 12px 0; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeInUp 0.4s ease-out forwards; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
-        #zen-editor { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; transform: translateY(100%); opacity: 0; pointer-events: none; }
-        #zen-editor.active { transform: translateY(0); opacity: 1; pointer-events: auto; }
-
-        /* 學習卡片樣式 */
-        .learn-card { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; overflow: hidden; backdrop-filter: blur(16px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); }
+        
+        /* 學習卡片設計 */
+        .learn-card { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; backdrop-filter: blur(20px); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
         .learn-section { display: none; padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
         .learn-section.active { display: block; animation: fadeInUp 0.3s ease; }
-        .tool-btn { @apply flex flex-col items-center justify-center gap-1 p-3 rounded-xl transition-all active:scale-95 border border-white/5 bg-slate-800/50 hover:bg-slate-700 text-xs font-medium text-slate-300; }
-        .tool-btn:hover { @apply text-white border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]; }
-        .tool-btn svg { @apply w-5 h-5 mb-1 opacity-70; }
+        
+        /* 智慧按鈕 */
+        .tool-btn { @apply flex flex-col items-center justify-center gap-1 p-3 rounded-xl transition-all active:scale-95 border border-white/5 bg-slate-800/40 hover:bg-slate-700 text-[10px] font-bold text-slate-400; }
+        .tool-btn:hover { @apply text-white border-emerald-500/40 bg-emerald-900/20; }
+        .tool-btn svg { @apply w-5 h-5 opacity-60; }
         .tool-btn:hover svg { @apply opacity-100 text-emerald-400; }
+
+        #zen-editor { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); }
+        #zen-editor.active { transform: translateY(0); }
         .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
         @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
     </style>
 </head>
-<body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden relative">
+<body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden">
 
-    <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex flex-col shadow-2xl z-40 backdrop-blur-md">
-        <div class="flex justify-between items-center w-full">
-            <div class="flex flex-col">
-                <div class="flex items-center space-x-2">
-                    <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_12px_#10b981]"></div>
-                    <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v33.1</span></span>
-                </div>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-[0.2em] uppercase opacity-70">Stable Fix</span>
-            </div>
-            
-            <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 focus:border-emerald-500 outline-none font-bold cursor-pointer transition-colors">
-                <option value="chat">💬 高速對話</option>
-                <option value="learning">🇬🇧 英文家教</option>
-                <option value="report">📑 深度研報</option>
-                <option value="calendar">📅 日曆管家</option>
-                <option value="presentation">📊 智能簡報</option>
-            </select>
+    <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex justify-between items-center z-40">
+        <div class="flex flex-col">
+            <span class="text-lg font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500">v34</span></span>
+            <span class="text-[8px] text-emerald-500 font-mono tracking-widest uppercase opacity-60">Smart Routing Edition</span>
         </div>
-        <div id="ppt-settings" class="hidden"></div> 
+        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold">
+            <option value="chat">💬 高速對話</option>
+            <option value="learning">🇬🇧 英文家教</option>
+            <option value="report">📑 深度研報</option>
+            <option value="calendar">📅 日曆管家</option>
+            <option value="presentation">📊 智能簡報</option>
+        </select>
     </header>
 
-    <div id="roleplay-status" class="hidden absolute top-20 left-1/2 transform -translate-x-1/2 z-30">
-        <button onclick="stopRoleplay()" class="bg-green-600 hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg transition-colors flex items-center gap-2 animate-bounce">
-            <span>🟢 對話練習中</span><span class="text-[10px] opacity-70">點此結束</span>
+    <div id="roleplay-status" class="hidden absolute top-20 left-1/2 -translate-x-1/2 z-50">
+        <button onclick="stopRoleplay()" class="bg-emerald-600 text-white text-xs font-bold px-5 py-2 rounded-full shadow-2xl animate-bounce flex items-center gap-2">
+            🟢 對話模式中 (點此結束)
         </button>
     </div>
 
-    <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 scroll-smooth bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.05),transparent)]"></main>
+    <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.05),transparent)]"></main>
 
-    <div id="zen-editor" class="fixed inset-0 z-50 bg-[#0f172a]/95 backdrop-blur-xl flex flex-col p-6">
+    <div id="zen-editor" class="fixed inset-0 z-50 bg-[#020617]/98 p-6 flex flex-col">
         <div class="flex justify-between items-center mb-4">
-            <span class="text-emerald-400 font-black tracking-widest uppercase text-xs">ZEN MODE</span>
-            <div class="flex gap-3">
-                <button onclick="document.getElementById('zen-input').value=''" class="text-slate-500 hover:text-white text-xs font-bold px-3 py-1 rounded bg-slate-800">CLEAR</button>
-                <button onclick="closeZenMode()" class="text-white bg-emerald-600 hover:bg-emerald-500 px-4 py-1 rounded-lg font-bold shadow-lg shadow-emerald-900/50 text-xs">DONE</button>
-            </div>
+            <span class="text-emerald-500 font-bold text-xs tracking-widest">ZEN WRITER</span>
+            <button onclick="closeZenMode()" class="bg-emerald-600 text-white px-6 py-2 rounded-full text-xs font-bold">DONE</button>
         </div>
-        <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-lg leading-relaxed outline-none resize-none placeholder-slate-600 font-mono" placeholder="在此處編輯內容..."></textarea>
+        <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-lg outline-none resize-none font-serif leading-relaxed" placeholder="Write freely..."></textarea>
     </div>
 
-    <div id="file-status" class="hidden px-4 pb-2 text-xs text-emerald-400 flex items-center gap-2 animate-fade-in z-30 relative">
-        <div class="relative overflow-hidden rounded-lg bg-emerald-900/20 p-2 border border-emerald-500/30 backdrop-blur-md">
-            <span id="filename-display" class="font-bold text-white truncate max-w-[150px]"></span>
-            <div id="image-scanner" class="hidden animate-scan"></div>
-        </div>
-        <button onclick="clearFile()" class="text-slate-500 hover:text-white px-2 ml-auto">✕</button>
-    </div>
-
-    <footer class="p-3 bg-[#0f172a] border-t border-emerald-900/30 pb-8 md:pb-4 shadow-2xl z-40 relative">
+    <footer class="p-4 bg-[#0f172a] border-t border-emerald-900/30 relative">
+        <div id="ppt-settings" class="hidden mb-3"></div>
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
             <input type="file" id="file-upload" class="hidden" accept="image/*">
-            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5 active:scale-95 shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg></button>
-            <button onclick="openZenMode()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5 active:scale-95 shrink-0"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg></button>
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white outline-none focus:border-emerald-500/50 transition-all text-sm placeholder-slate-500" placeholder="輸入訊息...">
-            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-all uppercase italic disabled:opacity-50 tracking-tighter shrink-0">Send</button>
+            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 shrink-0 border border-white/5"><svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg></button>
+            <button onclick="openZenMode()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 shrink-0 border border-white/5"><svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-emerald-500 outline-none transition-all" placeholder="輸入訊息...">
+            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg shadow-emerald-900/40 uppercase italic active:scale-95 transition-all">Send</button>
         </div>
     </footer>
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptSettings = document.getElementById('ppt-settings'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input'), sessId = "V331_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input'), sessId = "V34_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         let activeFile = null, roleplayContext = null;
 
         function openZenMode() { zenInput.value = input.value; zenEditor.classList.add('active'); zenInput.focus(); }
@@ -103,128 +86,105 @@
         function updateModeUI() {
             const m = modeSelect.value;
             const themes = { chat: "bg-emerald-600", report: "bg-blue-600", calendar: "bg-fuchsia-600", presentation: "bg-orange-600", learning: "bg-cyan-600" };
-            btn.className = `${themes[m]} text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all shadow-lg disabled:opacity-50 uppercase italic tracking-tighter shrink-0`;
-            
-            if (m === 'presentation') {
-                pptSettings.innerHTML = `<div class="bg-emerald-900/10 border-emerald-500/20 rounded-xl border-0 grid grid-cols-2 gap-4 text-xs p-3 mt-2"><div class="flex flex-col gap-1.5"><label class="text-emerald-400 font-bold uppercase text-[10px]">Visual Strategy</label><select id="ppt-visual" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="hybrid">🌿 混合平衡</option><option value="geometric">🔷 純粹幾何</option><option value="ai_art">✨ AI 全生圖</option></select></div><div class="flex flex-col gap-1.5"><label class="text-emerald-400 font-bold uppercase text-[10px]">Theme Style</label><select id="ppt-theme" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="Professional">💼 專業商務</option><option value="Cyberpunk">🔮 賽博龐克</option></select></div></div>`;
-                pptSettings.classList.remove('hidden');
-                input.placeholder = "輸入簡報主題...";
-            } else {
-                pptSettings.classList.add('hidden');
-                if (m === 'learning') input.placeholder = roleplayContext ? "對話練習中... (輸入回應)" : "輸入學習主題 (例: AI Future / BBC News)...";
-                else if (m === 'calendar') input.placeholder = "例：明天下午3點開會...";
-                else if (m === 'report') input.placeholder = "輸入研究主題...";
-                else input.placeholder = "輸入訊息...";
-            }
-            if (m !== 'learning') stopRoleplay();
+            btn.className = `${themes[m]} text-white px-6 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase italic`;
+            if (m === 'learning') input.placeholder = roleplayContext ? "對話練習中..." : "輸入主題 (例: AI News)...";
+            else input.placeholder = "輸入訊息...";
         }
         updateModeUI();
 
         window.stopRoleplay = () => { roleplayContext = null; document.getElementById('roleplay-status').classList.add('hidden'); input.placeholder = "輸入學習主題..."; };
         window.startRoleplay = (title) => { 
-            if (!roleplayContext) { alert("請先生成教材！"); return; }
-            addMessage('ai', `👋 <strong>Starting Conversation...</strong>\nI'm ready to discuss "${title}". I can act as a teacher or a character. What's on your mind?`);
+            if (!roleplayContext) return;
+            addMessage('ai', `👋 <strong>Roleplay Started!</strong>\nReady to discuss "${title}". What's your take?`);
             document.getElementById('roleplay-status').classList.remove('hidden');
-            input.placeholder = "Say something in English..."; input.focus();
+            input.focus();
         };
-
-        document.getElementById('file-upload').onchange = async (e) => { if(e.target.files[0]) { setLoading(true, "Optimizing..."); activeFile = await compressImage(e.target.files[0]); document.getElementById('file-status').classList.remove('hidden'); document.getElementById('filename-display').innerText = activeFile.name; setLoading(false); } };
 
         async function handleSend() {
             const text = input.value.trim();
-            if((!text && !activeFile) || btn.disabled) return;
-            addMessage('user', text); input.value = ''; zenInput.value = '';
+            if(!text && !activeFile) return;
+            addMessage('user', text); input.value = '';
             
             let payload = { message: text, session_id: sessId, mode: modeSelect.value };
             if (modeSelect.value === 'learning' && roleplayContext) { payload.roleplay_context = roleplayContext; setLoading(true, "Teacher replying..."); } 
-            else { 
-                let t = "Thinking...";
-                if(modeSelect.value==='learning') t="Preparing Lesson...";
-                if(modeSelect.value==='report') t="Researching...";
-                setLoading(true, t); 
-            }
-            
-            if (modeSelect.value === 'presentation') payload.options = { visual: document.getElementById('ppt-visual').value, theme: document.getElementById('ppt-theme').value };
-            if(activeFile) { payload.file_data = (await toBase64(activeFile)).split(',')[1]; payload.mime_type = activeFile.type; clearFile(); }
+            else { setLoading(true, "Thinking..."); }
 
             try {
-                const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), redirect: 'follow' });
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const data = await res.json();
-                
                 if(data.status === "success") {
                     if (data.type === 'lesson') { renderLearningCard(data.data); roleplayContext = data.data.article; }
-                    else if (data.type === 'update') { 
-                        const targetDiv = document.getElementById(data.section_id);
-                        if(targetDiv) { targetDiv.innerHTML = `<div class="prose prose-invert prose-sm">${marked.parse(data.new_content)}</div>`; targetDiv.classList.add('active'); }
-                    } 
-                    else { addMessage('ai', data.reply, { model: data.model, cached: data.cached, image: data.image, mime: data.mime, docUrl: data.docUrl, mermaid: data.mermaid }); }
-                } else { addMessage('ai', "🚨 Error: " + data.error); }
+                    else { addMessage('ai', data.reply, { model: data.model, docUrl: data.docUrl }); }
+                }
             } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
         }
 
         window.triggerLearningAction = async (action, title, articleSnippet, outputId) => {
             const outputDiv = document.getElementById(outputId);
-            if(outputDiv) { outputDiv.classList.add('active'); outputDiv.innerHTML = `<div class="flex items-center gap-2 text-emerald-400 font-bold"><div class="loading-dots">AI Generating</div></div>`; }
-            const payload = { mode: 'learning_action', action: action, title: title, article: articleSnippet, output_id: outputId, session_id: sessId };
+            outputDiv.classList.add('active');
+            outputDiv.innerHTML = `<div class="text-emerald-400 text-xs font-bold loading-dots">AI Routing</div>`;
+            const payload = { mode: 'learning_action', action: action, title: title, article: articleSnippet };
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const data = await res.json();
-                if(data.status === "success") { outputDiv.innerHTML = `<div class="prose prose-invert prose-sm">${marked.parse(data.reply)}</div>`; }
-            } catch(e) { outputDiv.innerHTML = `<span class="text-red-500">Error generating content.</span>`; }
+                outputDiv.innerHTML = `<div class="prose prose-invert prose-sm">${marked.parse(data.reply)}</div>`;
+            } catch(e) { outputDiv.innerHTML = `Error.`; }
         };
 
         function renderLearningCard(data) {
             const id = Math.random().toString(36).substr(2, 5);
-            const w = document.createElement('div'); w.className = "flex justify-start animate-fade-in w-full mb-6";
-            const articleContext = data.article.substring(0, 300).replace(/["']/g, "");
-
-            let html = `
-            <div class="learn-card w-full max-w-3xl text-slate-200">
-                <div class="p-4 bg-cyan-900/30 border-b border-white/5 flex gap-4 items-start">
-                    ${data.image ? `<img src="data:image/jpeg;base64,${data.image}" class="w-20 h-20 object-cover rounded-lg shadow-lg border border-white/10 hidden md:block">` : ''}
+            const w = document.createElement('div'); w.className = "flex animate-fade-in w-full mb-8";
+            const articleSnippet = data.article.substring(0, 300);
+            
+            w.innerHTML = `
+            <div class="learn-card w-full max-w-3xl">
+                <div class="p-5 bg-cyan-950/40 border-b border-white/5 flex gap-4">
+                    ${data.image ? `<img src="data:image/jpeg;base64,${data.image}" class="w-20 h-20 object-cover rounded-xl shadow-lg border border-white/10">` : ''}
                     <div class="flex-1">
-                        <h3 class="text-lg font-bold text-white mb-1">${data.title}</h3>
-                        <p class="text-xs text-cyan-400 mb-2 font-mono">TOPIC: ${data.topic.toUpperCase()}</p>
-                        <button onclick="speakText(\`${data.article.replace(/"/g, "&quot;")}\`)" class="bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 w-fit transition-colors">🔊 朗讀本文</button>
+                        <h3 class="text-xl font-bold text-white mb-1">${data.title}</h3>
+                        <div class="flex gap-2">
+                             <span class="text-[9px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded font-bold uppercase tracking-widest">${data.topic}</span>
+                        </div>
+                        <button onclick="speakText(\`${data.article.replace(/"/g, "&quot;")}\`)" class="mt-3 bg-cyan-600 text-white text-[10px] font-bold px-4 py-1.5 rounded-full shadow-lg">🔊 Read Aloud</button>
                     </div>
                 </div>
-                <div class="p-6 prose prose-invert prose-sm max-w-none leading-relaxed text-slate-300 font-serif" id="${id}-article">${marked.parse(data.article)}</div>
-                <div class="p-4 bg-[#0f172a]/80 border-t border-white/5 grid grid-cols-4 gap-2">
-                    <button onclick="toggleSection('${id}-trans')" class="tool-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" /></svg>中英對照</button>
-                    <button onclick="toggleSection('${id}-vocab')" class="tool-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>重點單字</button>
-                    <button onclick="toggleSection('${id}-grammar')" class="tool-btn"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>文法解析</button>
-                    <button onclick="startRoleplay('${data.title}')" class="tool-btn bg-emerald-900/30 border-emerald-500/30"><svg class="text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>對話練習</button>
-                    <button onclick="triggerLearningAction('banter', '${data.title}', '${articleContext}', '${id}-ext-content')" class="tool-btn col-span-2 bg-indigo-900/20"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>雙人脫口秀 (Banter)</button>
-                    <button onclick="triggerLearningAction('culture', '${data.title}', '${articleContext}', '${id}-ext-content')" class="tool-btn col-span-2 bg-amber-900/20"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>文化深潛 (Culture)</button>
+                <div class="p-6 prose prose-invert prose-sm max-w-none leading-relaxed text-slate-300 font-serif">${marked.parse(data.article)}</div>
+                <div class="p-4 bg-slate-900/50 grid grid-cols-4 gap-2 border-t border-white/5">
+                    <button onclick="toggleSection('${id}-trans')" class="tool-btn">中英對照</button>
+                    <button onclick="toggleSection('${id}-vocab')" class="tool-btn">重點單字</button>
+                    <button onclick="toggleSection('${id}-grammar')" class="tool-btn">文法解析</button>
+                    <button onclick="startRoleplay('${data.title}')" class="tool-btn text-emerald-400 border-emerald-500/20">對話練習</button>
+                    <button onclick="triggerLearningAction('banter', '${data.title}', '${articleSnippet}', '${id}-ext')" class="tool-btn col-span-2 bg-indigo-900/20">🎙️ 雙人脫口秀</button>
+                    <button onclick="triggerLearningAction('culture', '${data.title}', '${articleSnippet}', '${id}-ext')" class="tool-btn col-span-2 bg-amber-900/20">🗺️ 文化深潛</button>
                 </div>
-                <div id="${id}-trans" class="learn-section bg-slate-800/50"><h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Translation</h4><div class="text-sm text-slate-300">${marked.parse(data.translation)}</div></div>
-                <div id="${id}-vocab" class="learn-section bg-slate-800/50"><h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Vocabulary</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-2">${data.vocab.map(v => `<div class="bg-white/5 p-2 rounded border border-white/5 flex justify-between items-center"><div><span class="font-bold text-emerald-400">${v.word}</span> <span class="text-xs text-slate-400">${v.pos}</span><div class="text-xs text-slate-300">${v.meaning}</div></div><button onclick="speakText('${v.word}')" class="text-slate-500 hover:text-white p-1">🔊</button></div>`).join('')}</div></div>
-                <div id="${id}-grammar" class="learn-section bg-slate-800/50"><h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Grammar</h4><div class="text-sm text-indigo-200 bg-indigo-900/20 p-3 rounded">${marked.parse(data.grammar)}</div></div>
-                <div id="${id}-ext-content" class="learn-section bg-indigo-900/10 border-indigo-500/20 border-t"></div>
+                <div id="${id}-trans" class="learn-section bg-slate-800/40"><h4>Translation</h4>${marked.parse(data.translation)}</div>
+                <div id="${id}-vocab" class="learn-section bg-slate-800/40"><h4>Vocabulary</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${data.vocab.map(v => `<div class="bg-white/5 p-3 rounded-xl flex justify-between"><div><span class="font-bold text-emerald-400">${v.word}</span> <span class="text-[10px] opacity-50 italic">${v.pos}</span><p class="text-xs mt-1">${v.meaning}</p></div><button onclick="speakText('${v.word}')" class="text-slate-500">🔊</button></div>`).join('')}</div></div>
+                <div id="${id}-grammar" class="learn-section bg-slate-800/40">${marked.parse(data.grammar)}</div>
+                <div id="${id}-ext" class="learn-section bg-indigo-950/20 border-t border-indigo-500/20"></div>
             </div>`;
-            w.innerHTML = html; chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
+            chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        window.toggleSection = (id) => { const el = document.getElementById(id); if(el) el.classList.toggle('active'); };
-        window.speakText = (text) => { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.9; window.speechSynthesis.speak(u); };
+        window.toggleSection = (id) => { document.getElementById(id).classList.toggle('active'); };
+        window.speakText = (text) => { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.95; window.speechSynthesis.speak(u); };
 
         function addMessage(role, text, meta = null) {
-            const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`;
-            const m = document.createElement('div'); m.className = `max-w-[90%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl relative`;
-            if(meta && meta.docUrl) m.innerHTML += `<div class="mb-4 bg-indigo-900/30 border border-indigo-500/30 rounded-xl p-3 flex items-center gap-3 cursor-pointer" onclick="window.open('${meta.docUrl}','_blank')"><div class="bg-indigo-500 text-white p-2 rounded-lg">📄</div><div class="flex-1"><div class="font-bold text-indigo-200">深度研究報告</div></div></div>`;
-            const t = document.createElement('div'); t.innerHTML = marked.parse(text || ""); m.appendChild(t);
-            // ✨ 複製按鈕 (修復)
+            const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group mb-4`;
+            const m = document.createElement('div'); m.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-white/5'} prose prose-invert prose-sm shadow-xl relative`;
+            if(meta && meta.docUrl) m.innerHTML += `<div class="mb-3 bg-indigo-500 text-white p-3 rounded-xl cursor-pointer font-bold text-xs" onclick="window.open('${meta.docUrl}')">📄 開啟研報</div>`;
+            m.innerHTML += marked.parse(text || "");
+            
+            // ✨ 複製按鈕 (穩定修復)
             if (role === 'ai') {
-                const c = document.createElement('div'); c.className = "mt-4 pt-2 border-t border-white/5 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity";
-                c.innerHTML = `<button onclick="navigator.clipboard.writeText(this.parentElement.previousElementSibling.innerText);this.innerHTML='✅ Copied!'" class="text-[10px] bg-slate-700/50 hover:bg-emerald-600 text-slate-400 hover:text-white px-3 py-1 rounded-lg uppercase font-bold transition-all">📋 Copy</button>`;
+                const c = document.createElement('button');
+                c.className = "mt-4 text-[9px] uppercase font-black bg-slate-700 hover:bg-emerald-600 px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-auto block";
+                c.innerText = "Copy Content";
+                c.onclick = () => { navigator.clipboard.writeText(text); c.innerText = "Copied!"; };
                 m.appendChild(c);
             }
             w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
-        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id = 'loader'; d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 px-2'; d.innerHTML = `⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { const e = document.getElementById('loader'); if(e) e.remove(); } }
-        function toBase64(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); }); }
-        function clearFile() { activeFile = null; document.getElementById('file-status').classList.add('hidden'); document.getElementById('image-scanner').classList.add('hidden'); }
-        function compressImage(f) { return new Promise(r => { const i = new Image(); i.src = URL.createObjectURL(f); i.onload = () => { const c = document.createElement('canvas'); c.width = i.width; c.height = i.height; c.getContext('2d').drawImage(i, 0, 0); c.toBlob(b => r(new File([b], f.name, {type: "image/jpeg"})), 'image/jpeg', 0.85); }; }); }
+        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id = 'loader'; d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 ml-4'; d.innerHTML = `⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); } else { document.getElementById('loader')?.remove(); } }
     </script>
 </body>
 </html>
