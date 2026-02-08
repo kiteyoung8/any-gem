@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v34.4 : Talk Show Audio</title>
+    <title>anyGem v34.5 : Language Enforcement</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -14,15 +14,12 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
         .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .learn-card { background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; overflow: hidden; backdrop-filter: blur(20px); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .learn-section { display: none; padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
+        .learn-card { background: rgba(15, 23, 42, 0.98); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; overflow: hidden; backdrop-filter: blur(20px); box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+        .learn-section { display: none; padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); }
         .learn-section.active { display: block; animation: fadeInUp 0.3s ease; }
         .tool-btn { @apply flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-2xl transition-all active:scale-95 border border-white/5 bg-slate-800/40 hover:bg-slate-700 text-[11px] font-bold text-slate-400; }
         .tool-btn:hover { @apply text-white border-emerald-500/40 bg-emerald-900/20 shadow-lg; }
-        
-        /* 播放中的按鈕動畫 */
         .playing { @apply ring-2 ring-emerald-500 animate-pulse bg-emerald-900/40 text-white; }
-        
         #zen-editor { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); z-index: 100; }
         #zen-editor.active { transform: translateY(0); }
         .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
@@ -33,10 +30,10 @@
 
     <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex justify-between items-center z-40">
         <div class="flex flex-col">
-            <span class="text-xl font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v34.4</span></span>
-            <span class="text-[8px] text-emerald-500 font-mono tracking-[0.2em] uppercase opacity-60">Audio Studio Edition</span>
+            <span class="text-xl font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v34.5</span></span>
+            <span class="text-[8px] text-emerald-500 font-mono tracking-[0.2em] uppercase opacity-60">Language Fix</span>
         </div>
-        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold cursor-pointer">
+        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold">
             <option value="chat">💬 高速對話</option>
             <option value="learning">🇬🇧 英文家教</option>
             <option value="report">📑 深度研報</option>
@@ -67,7 +64,7 @@
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input'), sessId = "V344_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input'), sessId = "V345_" + Math.random().toString(36).substr(2, 6).toUpperCase();
 
         function openZenMode() { zenInput.value = input.value; zenEditor.classList.add('active'); zenInput.focus(); }
         function closeZenMode() { input.value = zenInput.value; zenEditor.classList.remove('active'); input.focus(); }
@@ -78,65 +75,11 @@
         }
         updateModeUI();
 
-        // ✨ 核心功能：雙人對話朗讀
-        async function playBanterSpeech(btnElement, text) {
-            if (window.speechSynthesis.speaking) {
-                window.speechSynthesis.cancel();
-                btnElement.classList.remove('playing');
-                btnElement.innerText = "🎙️ 雙語脫口秀";
-                return;
-            }
-
-            btnElement.classList.add('playing');
-            btnElement.innerText = "🛑 停止播放";
-
-            // 解析每一行：Host A: English (Chinese)
-            const lines = text.split('\n').filter(l => l.includes(':'));
-            let currentLine = 0;
-
-            function speakNext() {
-                if (currentLine >= lines.length) {
-                    btnElement.classList.remove('playing');
-                    btnElement.innerText = "🎙️ 雙語脫口秀";
-                    return;
-                }
-
-                const line = lines[currentLine];
-                const isHostA = line.includes('Host A');
-                // 提取括號外的英文部分
-                const englishText = line.split(':')[1].split('(')[0].trim();
-
-                const utterance = new SpeechSynthesisUtterance(englishText);
-                utterance.lang = 'en-US';
-                
-                // 角色音色設定
-                utterance.pitch = isHostA ? 1.0 : 0.8; // Host A 正常音，Host B 略低沉
-                utterance.rate = 0.95;
-
-                // 嘗試尋找不同聲音
-                const voices = window.speechSynthesis.getVoices();
-                if (isHostA) {
-                    utterance.voice = voices.find(v => v.name.includes('Google US English') && v.name.includes('Female')) || voices[0];
-                } else {
-                    utterance.voice = voices.find(v => v.name.includes('Google US English') && v.name.includes('Male')) || voices[1];
-                }
-
-                utterance.onend = () => {
-                    currentLine++;
-                    setTimeout(speakNext, 400); // 句間停頓
-                };
-
-                window.speechSynthesis.speak(utterance);
-            }
-
-            speakNext();
-        }
-
         async function handleSend() {
             const text = input.value.trim();
             if(!text) return;
             addMessage('user', text); input.value = '';
-            setLoading(true, "Thinking...");
+            setLoading(true, "Generating Lesson...");
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ message: text, session_id: sessId, mode: modeSelect.value }) });
                 const data = await res.json();
@@ -145,6 +88,24 @@
                     else addMessage('ai', data.reply, { model: data.model });
                 }
             } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
+        }
+
+        async function playBanterSpeech(btnElement, text) {
+            if (window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); btnElement.classList.remove('playing'); btnElement.innerText = "🔊 播放聲音"; return; }
+            btnElement.classList.add('playing'); btnElement.innerText = "🛑 停止";
+            const lines = text.split('\n').filter(l => l.includes(':'));
+            let currentLine = 0;
+            function speakNext() {
+                if (currentLine >= lines.length) { btnElement.classList.remove('playing'); btnElement.innerText = "🔊 播放聲音"; return; }
+                const line = lines[currentLine];
+                const englishPart = line.split(':')[1].split('(')[0].trim();
+                const utterance = new SpeechSynthesisUtterance(englishPart);
+                utterance.lang = 'en-US';
+                utterance.pitch = line.includes('Host A') ? 1.1 : 0.9;
+                utterance.onend = () => { currentLine++; setTimeout(speakNext, 500); };
+                window.speechSynthesis.speak(utterance);
+            }
+            speakNext();
         }
 
         window.triggerLearningAction = async (btn, action, title, outputId) => {
@@ -156,11 +117,10 @@
                 const data = await res.json();
                 if(data.status === "success") {
                     outputDiv.innerHTML = `<div class="prose prose-invert prose-sm animate-fade-in">${marked.parse(data.reply)}</div>`;
-                    // 如果是脫口秀，顯示播放按鈕或直接綁定點擊事件
                     if (action === 'banter') {
                         const playBtn = document.createElement('button');
                         playBtn.className = "mt-4 bg-indigo-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg";
-                        playBtn.innerText = "🔊 播放對話聲音";
+                        playBtn.innerText = "🔊 播放聲音";
                         playBtn.onclick = () => playBanterSpeech(playBtn, data.reply);
                         outputDiv.appendChild(playBtn);
                     }
@@ -177,6 +137,7 @@
                     ${data.image ? `<img src="data:image/jpeg;base64,${data.image}" class="w-24 h-24 object-cover rounded-2xl">` : ''}
                     <div class="flex-1">
                         <h3 class="text-2xl font-bold text-white mb-2">${data.title}</h3>
+                        <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded-full font-black uppercase tracking-widest">${data.topic}</span>
                         <div class="mt-4"><button onclick="speakText(\`${data.article.replace(/"/g, "&quot;")}\`)" class="bg-cyan-600 text-white text-[10px] font-bold px-6 py-2 rounded-full shadow-lg transition-all active:scale-95">🔊 Listen Now</button></div>
                     </div>
                 </div>
@@ -188,7 +149,7 @@
                     <button onclick="triggerLearningAction(this, 'banter', '${data.title}', '${id}-ext')" class="tool-btn col-span-1 bg-indigo-900/20">🎙️ 雙語脫口秀</button>
                     <button onclick="triggerLearningAction(this, 'culture', '${data.title}', '${id}-ext')" class="tool-btn col-span-2 bg-amber-900/20">🗺️ 文化深潛</button>
                 </div>
-                <div id="${id}-trans" class="learn-section"><h4>Translation</h4>${marked.parse(data.translation)}</div>
+                <div id="${id}-trans" class="learn-section"><h4>Bilingual Translation</h4>${marked.parse(data.translation)}</div>
                 <div id="${id}-vocab" class="learn-section"><h4>Vocabulary</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${data.vocab.map(v => `<div class="bg-white/5 p-4 rounded-xl flex justify-between items-center group"><div><span class="font-bold text-emerald-400 text-base">${v.word}</span><p class="text-xs mt-1 text-slate-300">${v.meaning}</p></div><button onclick="speakText('${v.word}')" class="text-slate-500">🔊</button></div>`).join('')}</div></div>
                 <div id="${id}-grammar" class="learn-section">${marked.parse(data.grammar)}</div>
                 <div id="${id}-ext" class="learn-section bg-indigo-950/20 border-t border-indigo-500/20"></div>
