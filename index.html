@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v28.0 : Zen Writer</title>
+    <title>anyGem v29.0 : Lingua Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -14,6 +14,7 @@
         window.mermaid = mermaid;
     </script>
     <style>
+        /* 基礎樣式保留 v28 */
         @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }
         .animate-scan { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(16, 185, 129, 0.2), transparent); animation: scanline 3s linear infinite; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -24,8 +25,6 @@
         .mermaid-container { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 1rem; margin-top: 1rem; overflow-x: auto; }
         #ppt-settings { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); max-height: 0; opacity: 0; overflow: hidden; margin-top: 0; }
         #ppt-settings.open { max-height: 200px; opacity: 1; margin-top: 0.75rem; padding: 0.75rem; border-width: 1px; }
-        
-        /* ✨ Zen Editor 動畫 */
         #zen-editor { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; transform: translateY(100%); opacity: 0; pointer-events: none; }
         #zen-editor.active { transform: translateY(0); opacity: 1; pointer-events: auto; }
     </style>
@@ -37,16 +36,16 @@
             <div class="flex flex-col">
                 <div class="flex items-center space-x-2">
                     <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_12px_#10b981]"></div>
-                    <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v28.0</span></span>
+                    <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v29.0</span></span>
                 </div>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-[0.2em] uppercase opacity-70">Zen Writer Mode</span>
+                <span class="text-[8px] text-emerald-400 font-mono tracking-[0.2em] uppercase opacity-70">Lingua Master</span>
             </div>
+            
             <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 focus:border-emerald-500 outline-none font-bold cursor-pointer transition-colors">
                 <option value="chat">💬 高速對話</option>
-                <option value="search">🌍 聯網搜尋</option>
+                <option value="learning">🇬🇧 英文家教</option> <option value="search">🌍 聯網搜尋</option>
                 <option value="calendar">📅 日曆管家</option>
                 <option value="report">📑 深度研報</option>
-                <option value="drawing">🎨 藝術生圖</option>
                 <option value="presentation">📊 智能簡報</option>
             </select>
         </div>
@@ -63,164 +62,139 @@
                 <button onclick="closeZenMode()" class="text-white bg-emerald-600 hover:bg-emerald-500 px-4 py-1 rounded-lg font-bold shadow-lg shadow-emerald-900/50 text-xs">DONE</button>
             </div>
         </div>
-        <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-lg leading-relaxed outline-none resize-none placeholder-slate-600 font-mono" placeholder="在此處盡情揮灑您的想法... (支援換行與長文編輯)"></textarea>
-        <div class="mt-4 text-center text-[10px] text-slate-600">Tip: 點擊 DONE 將內容同步回對話框</div>
+        <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-lg leading-relaxed outline-none resize-none placeholder-slate-600 font-mono" placeholder="在此貼上您想修改的英文文章，或撰寫草稿..."></textarea>
     </div>
 
     <div id="file-status" class="hidden px-4 pb-2 text-xs text-emerald-400 flex items-center gap-2 animate-fade-in z-30 relative">
         <div class="relative overflow-hidden rounded-lg bg-emerald-900/20 p-2 border border-emerald-500/30 backdrop-blur-md">
             <span id="filename-display" class="font-bold text-white truncate max-w-[150px]"></span>
-            <div id="image-scanner" class="hidden animate-scan"></div>
         </div>
-        <button onclick="clearFile()" class="text-slate-500 hover:text-white px-2 ml-auto transition-colors">✕</button>
+        <button onclick="clearFile()" class="text-slate-500 hover:text-white px-2 ml-auto">✕</button>
     </div>
 
     <footer class="p-3 bg-[#0f172a] border-t border-emerald-900/30 pb-8 md:pb-4 shadow-2xl z-40 relative">
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
             <input type="file" id="file-upload" class="hidden" accept="image/*">
-            
             <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5 active:scale-95 shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             </button>
-
             <button onclick="openZenMode()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5 active:scale-95 shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
             </button>
-
             <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white outline-none focus:border-emerald-500/50 transition-all text-sm placeholder-slate-500" placeholder="輸入訊息...">
             <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-all uppercase italic disabled:opacity-50 tracking-tighter shrink-0">Send</button>
         </div>
     </footer>
 
     <script>
-        // ✅ 您的 GAS 部署網址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
 
-        const chatWindow = document.getElementById('chat-window'), 
-              input = document.getElementById('user-input'), 
-              btn = document.getElementById('send-btn'), 
-              fileStatus = document.getElementById('file-status'), 
-              scanner = document.getElementById('image-scanner'), 
-              modeSelect = document.getElementById('mode-select'), 
-              pptSettings = document.getElementById('ppt-settings'),
-              zenEditor = document.getElementById('zen-editor'), // ✨
-              zenInput = document.getElementById('zen-input'),   // ✨
-              sessId = "ZEN_" + Math.random().toString(36).substr(2, 6).toUpperCase();
-        
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptSettings = document.getElementById('ppt-settings'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input'), sessId = "ENG_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         let activeFile = null;
 
-        // ✨ Zen Mode 邏輯
-        function openZenMode() {
-            zenInput.value = input.value; // 將小框框的字複製到大框框
-            zenEditor.classList.add('active');
-            zenInput.focus();
-        }
-
-        function closeZenMode() {
-            input.value = zenInput.value; // 將大框框的字同步回小框框
-            zenEditor.classList.remove('active');
-            input.focus();
-        }
+        function openZenMode() { zenInput.value = input.value; zenEditor.classList.add('active'); zenInput.focus(); }
+        function closeZenMode() { input.value = zenInput.value; zenEditor.classList.remove('active'); input.focus(); }
 
         function updateModeUI() {
             const m = modeSelect.value;
-            const themes = { chat: "bg-emerald-600", search: "bg-blue-600", calendar: "bg-fuchsia-600", report: "bg-indigo-600", drawing: "bg-pink-600", presentation: "bg-orange-600" };
+            const themes = { chat: "bg-emerald-600", learning: "bg-cyan-600", search: "bg-blue-600", calendar: "bg-fuchsia-600", report: "bg-indigo-600", presentation: "bg-orange-600" };
             btn.className = `${themes[m] || "bg-emerald-600"} text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all shadow-lg disabled:opacity-50 uppercase italic tracking-tighter shrink-0`;
             
             if (m === 'presentation') {
-                pptSettings.innerHTML = `<div class="flex flex-col gap-1.5"><label class="text-emerald-400 font-bold uppercase text-[10px]">Visual Strategy</label><select id="ppt-visual" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="hybrid">🌿 混合平衡</option><option value="geometric">🔷 純粹幾何</option><option value="ai_art">✨ AI 全生圖</option></select></div><div class="flex flex-col gap-1.5"><label class="text-emerald-400 font-bold uppercase text-[10px]">Theme Style</label><select id="ppt-theme" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="Professional">💼 專業商務</option><option value="Cyberpunk">🔮 賽博龐克</option><option value="Warm">🍂 溫暖人文</option></select></div>`;
+                pptSettings.innerHTML = `<div class="flex flex-col gap-1.5"><label class="text-emerald-400 font-bold uppercase text-[10px]">Visual Strategy</label><select id="ppt-visual" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="hybrid">🌿 混合平衡</option><option value="geometric">🔷 純粹幾何</option><option value="ai_art">✨ AI 全生圖</option></select></div><div class="flex flex-col gap-1.5"><label class="text-emerald-400 font-bold uppercase text-[10px]">Theme Style</label><select id="ppt-theme" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="Professional">💼 專業商務</option><option value="Cyberpunk">🔮 賽博龐克</option></select></div>`;
                 pptSettings.classList.add('open');
                 input.placeholder = "輸入簡報主題...";
             } else {
                 pptSettings.classList.remove('open');
-                if (m === 'calendar') input.placeholder = "例：明天下午3點開會...";
+                if (m === 'learning') input.placeholder = "例：BBC Tech News / 用英文解釋量子力學...";
+                else if (m === 'calendar') input.placeholder = "例：明天下午3點開會...";
                 else if (m === 'report') input.placeholder = "輸入研究主題...";
                 else input.placeholder = "輸入訊息...";
             }
         }
         updateModeUI();
 
-        document.getElementById('file-upload').onchange = async (e) => { 
-            if(e.target.files[0]) { 
-                setLoading(true, "Optimizing..."); 
-                activeFile = await compressImage(e.target.files[0]); 
-                fileStatus.classList.remove('hidden'); 
-                document.getElementById('filename-display').innerText = activeFile.name; 
-                setLoading(false); 
-            } 
-        };
+        document.getElementById('file-upload').onchange = async (e) => { if(e.target.files[0]) { setLoading(true, "Optimizing..."); activeFile = await compressImage(e.target.files[0]); document.getElementById('file-status').classList.remove('hidden'); document.getElementById('filename-display').innerText = activeFile.name; setLoading(false); } };
 
         async function handleSend() {
             const text = input.value.trim();
             if((!text && !activeFile) || btn.disabled) return;
             addMessage('user', text);
-            
             let extraOptions = {};
-            if (modeSelect.value === 'presentation') {
-                extraOptions = { visual: document.getElementById('ppt-visual').value, theme: document.getElementById('ppt-theme').value };
-            }
+            if (modeSelect.value === 'presentation') extraOptions = { visual: document.getElementById('ppt-visual').value, theme: document.getElementById('ppt-theme').value };
 
             const payload = { message: text, session_id: sessId, mode: modeSelect.value, options: extraOptions };
-            input.value = '';
-            // ✨ 發送後也清空 Zen Editor
-            zenInput.value = ''; 
-            
-            if(activeFile) { 
-                scanner.classList.remove('hidden'); 
-                payload.file_data = (await toBase64(activeFile)).split(',')[1]; 
-                payload.mime_type = activeFile.type; 
-                clearFile(); 
-            }
+            input.value = ''; zenInput.value = '';
+            if(activeFile) { payload.file_data = (await toBase64(activeFile)).split(',')[1]; payload.mime_type = activeFile.type; clearFile(); }
 
-            let loadingText = "Thinking...";
-            if (modeSelect.value === 'report') loadingText = "Researching...";
-            else if (modeSelect.value === 'calendar') loadingText = "Scheduling...";
+            let t = "Thinking...";
+            if(modeSelect.value === 'learning') t = "Preparing Lesson...";
+            else if(modeSelect.value === 'report') t = "Researching...";
+            else if(modeSelect.value === 'calendar') t = "Scheduling...";
             
-            setLoading(true, loadingText);
+            setLoading(true, t);
 
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), redirect: 'follow' });
                 const data = await res.json();
-                
                 if(data.status === "success") {
-                    addMessage('ai', data.reply, { model: data.model, cached: data.cached, image: data.image, mime: data.mime, docUrl: data.docUrl, mermaid: data.mermaid });
+                    addMessage('ai', data.reply, { model: data.model, cached: data.cached, image: data.image, mime: data.mime, docUrl: data.docUrl, mermaid: data.mermaid, speak: (modeSelect.value === 'learning') });
                 } else {
                     addMessage('ai', "🚨 Error: " + data.error);
                 }
-            } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); scanner.classList.add('hidden'); }
+            } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
         }
 
-        async function addMessage(role, text, meta = null) {
+        function addMessage(role, text, meta = null) {
             const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`;
             const m = document.createElement('div'); m.className = `max-w-[90%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl relative`;
 
-            if(meta && meta.docUrl) {
-                m.innerHTML += `<div class="mb-4 bg-indigo-900/30 border border-indigo-500/30 rounded-xl p-3 flex items-center gap-3 cursor-pointer" onclick="window.open('${meta.docUrl}','_blank')"><div class="bg-indigo-500 text-white p-2 rounded-lg">📄</div><div class="flex-1"><div class="font-bold text-indigo-200">深度研究報告</div></div></div>`;
-            }
+            if(meta && meta.docUrl) m.innerHTML += `<div class="mb-4 bg-indigo-900/30 border border-indigo-500/30 rounded-xl p-3 flex items-center gap-3 cursor-pointer" onclick="window.open('${meta.docUrl}','_blank')"><div class="bg-indigo-500 text-white p-2 rounded-lg">📄</div><div class="flex-1"><div class="font-bold text-indigo-200">深度研究報告</div></div></div>`;
             if(meta && meta.image) m.innerHTML += `<img src="data:${meta.mime || 'image/png'};base64,${meta.image}" class="w-full rounded-lg mb-3 shadow-lg">`;
 
-            const safeText = (text && text !== "undefined") ? text : "";
-            if (safeText) {
-                const t = document.createElement('div'); t.innerHTML = marked.parse(safeText); m.appendChild(t);
-                if (role === 'ai') {
-                    const c = document.createElement('div'); c.className = "mt-4 pt-2 border-t border-white/5 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity";
-                    c.innerHTML = `<button onclick="navigator.clipboard.writeText(this.parentElement.previousElementSibling.innerText);this.innerHTML='✅ Copied!'" class="text-[10px] bg-slate-700/50 hover:bg-emerald-600 text-slate-400 hover:text-white px-3 py-1 rounded-lg uppercase font-bold transition-all">📋 Copy</button>`;
-                    m.appendChild(c);
-                }
+            const tDiv = document.createElement('div'); tDiv.innerHTML = marked.parse(text || ""); m.appendChild(tDiv);
+
+            // ✨ 英文家教模式：朗讀按鈕
+            if (role === 'ai' && meta && meta.speak) {
+                const speakBtn = document.createElement('button');
+                speakBtn.className = "mt-4 mr-2 text-[10px] bg-cyan-700/50 hover:bg-cyan-500 text-cyan-200 hover:text-white px-3 py-1 rounded-lg uppercase font-bold transition-all flex items-center gap-1";
+                speakBtn.innerHTML = `🔊 Play Audio`;
+                speakBtn.onclick = () => speakText(text); // 呼叫朗讀
+                m.appendChild(speakBtn);
             }
+
+            // 複製按鈕
+            if (role === 'ai') {
+                const c = document.createElement('button');
+                c.className = "mt-4 text-[10px] bg-slate-700/50 hover:bg-emerald-600 text-slate-400 hover:text-white px-3 py-1 rounded-lg uppercase font-bold transition-all";
+                c.innerHTML = `📋 Copy`;
+                c.onclick = () => navigator.clipboard.writeText(text);
+                m.appendChild(c);
+            }
+
             if (meta && meta.mermaid) {
                 const mid = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
                 const g = document.createElement('div'); g.className = "mermaid-container"; g.innerHTML = `<div class="mermaid" id="${mid}">${meta.mermaid}</div>`;
                 m.appendChild(g);
                 setTimeout(async () => { try { await window.mermaid.run({ nodes: [document.getElementById(mid)] }); } catch(e){} }, 100);
             }
-            if(meta) m.innerHTML += `<div class="mt-2 opacity-30 text-[8px] font-mono italic">NODE: ${meta.model}</div>`;
             w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // ✨ 瀏覽器 TTS 朗讀功能
+        function speakText(text) {
+            window.speechSynthesis.cancel();
+            // 移除 Markdown 符號以獲得乾淨讀音
+            const cleanText = text.replace(/[*#`_\[\]]/g, '');
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'en-US'; // 設定為美式發音
+            utterance.rate = 1.0; 
+            window.speechSynthesis.speak(utterance);
         }
 
         function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id = 'loader'; d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 px-2'; d.innerHTML = `⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { const e = document.getElementById('loader'); if(e) e.remove(); } }
         function toBase64(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); }); }
-        function clearFile() { activeFile = null; fileStatus.classList.add('hidden'); scanner.classList.add('hidden'); }
+        function clearFile() { activeFile = null; document.getElementById('file-status').classList.add('hidden'); }
         function compressImage(f) { return new Promise(r => { const i = new Image(); i.src = URL.createObjectURL(f); i.onload = () => { const c = document.createElement('canvas'); c.width = i.width; c.height = i.height; c.getContext('2d').drawImage(i, 0, 0); c.toBlob(b => r(new File([b], f.name, {type: "image/jpeg"})), 'image/jpeg', 0.85); }; }); }
     </script>
 </body>
