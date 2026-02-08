@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v34.3 : Bilingual Studio</title>
+    <title>anyGem v34.4 : Talk Show Audio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -20,8 +20,8 @@
         .tool-btn { @apply flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-2xl transition-all active:scale-95 border border-white/5 bg-slate-800/40 hover:bg-slate-700 text-[11px] font-bold text-slate-400; }
         .tool-btn:hover { @apply text-white border-emerald-500/40 bg-emerald-900/20 shadow-lg; }
         
-        /* 雙語文字優化 */
-        .prose em { @apply text-slate-400 not-italic text-xs block mt-0.5; } /* 用於自動生成的括號中文 */
+        /* 播放中的按鈕動畫 */
+        .playing { @apply ring-2 ring-emerald-500 animate-pulse bg-emerald-900/40 text-white; }
         
         #zen-editor { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); z-index: 100; }
         #zen-editor.active { transform: translateY(0); }
@@ -33,8 +33,8 @@
 
     <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex justify-between items-center z-40">
         <div class="flex flex-col">
-            <span class="text-xl font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v34.3</span></span>
-            <span class="text-[8px] text-emerald-500 font-mono tracking-[0.2em] uppercase opacity-60">Bilingual Studio Ed.</span>
+            <span class="text-xl font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v34.4</span></span>
+            <span class="text-[8px] text-emerald-500 font-mono tracking-[0.2em] uppercase opacity-60">Audio Studio Edition</span>
         </div>
         <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold cursor-pointer">
             <option value="chat">💬 高速對話</option>
@@ -67,7 +67,7 @@
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input'), sessId = "V343_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input'), sessId = "V344_" + Math.random().toString(36).substr(2, 6).toUpperCase();
 
         function openZenMode() { zenInput.value = input.value; zenEditor.classList.add('active'); zenInput.focus(); }
         function closeZenMode() { input.value = zenInput.value; zenEditor.classList.remove('active'); input.focus(); }
@@ -75,35 +75,97 @@
             const m = modeSelect.value;
             const themes = { chat: "bg-emerald-600", report: "bg-blue-600", calendar: "bg-fuchsia-600", presentation: "bg-orange-600", learning: "bg-cyan-600" };
             btn.className = `${themes[m]} text-white px-6 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase italic`;
-            input.placeholder = (m === 'learning') ? "輸入學習主題 (例: World History)..." : "輸入訊息...";
         }
         updateModeUI();
+
+        // ✨ 核心功能：雙人對話朗讀
+        async function playBanterSpeech(btnElement, text) {
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                btnElement.classList.remove('playing');
+                btnElement.innerText = "🎙️ 雙語脫口秀";
+                return;
+            }
+
+            btnElement.classList.add('playing');
+            btnElement.innerText = "🛑 停止播放";
+
+            // 解析每一行：Host A: English (Chinese)
+            const lines = text.split('\n').filter(l => l.includes(':'));
+            let currentLine = 0;
+
+            function speakNext() {
+                if (currentLine >= lines.length) {
+                    btnElement.classList.remove('playing');
+                    btnElement.innerText = "🎙️ 雙語脫口秀";
+                    return;
+                }
+
+                const line = lines[currentLine];
+                const isHostA = line.includes('Host A');
+                // 提取括號外的英文部分
+                const englishText = line.split(':')[1].split('(')[0].trim();
+
+                const utterance = new SpeechSynthesisUtterance(englishText);
+                utterance.lang = 'en-US';
+                
+                // 角色音色設定
+                utterance.pitch = isHostA ? 1.0 : 0.8; // Host A 正常音，Host B 略低沉
+                utterance.rate = 0.95;
+
+                // 嘗試尋找不同聲音
+                const voices = window.speechSynthesis.getVoices();
+                if (isHostA) {
+                    utterance.voice = voices.find(v => v.name.includes('Google US English') && v.name.includes('Female')) || voices[0];
+                } else {
+                    utterance.voice = voices.find(v => v.name.includes('Google US English') && v.name.includes('Male')) || voices[1];
+                }
+
+                utterance.onend = () => {
+                    currentLine++;
+                    setTimeout(speakNext, 400); // 句間停頓
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            speakNext();
+        }
 
         async function handleSend() {
             const text = input.value.trim();
             if(!text) return;
             addMessage('user', text); input.value = '';
-            setLoading(true, modeSelect.value === 'learning' ? "Generating Bilingual Lesson..." : "Thinking...");
-
+            setLoading(true, "Thinking...");
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ message: text, session_id: sessId, mode: modeSelect.value }) });
                 const data = await res.json();
                 if(data.status === "success") {
                     if (data.type === 'lesson') renderLearningCard(data.data);
-                    else addMessage('ai', data.reply, { model: data.model, docUrl: data.docUrl });
-                } else { addMessage('ai', "🚨 Error: " + data.error); }
+                    else addMessage('ai', data.reply, { model: data.model });
+                }
             } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
         }
 
-        window.triggerLearningAction = async (action, title, outputId) => {
+        window.triggerLearningAction = async (btn, action, title, outputId) => {
             const outputDiv = document.getElementById(outputId);
             outputDiv.classList.add('active');
-            outputDiv.innerHTML = `<div class="text-emerald-400 text-xs font-bold loading-dots">AI Generating Bilingual ${action.toUpperCase()}</div>`;
+            outputDiv.innerHTML = `<div class="text-emerald-400 text-xs font-bold loading-dots">AI Generating ${action.toUpperCase()}</div>`;
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ mode: 'learning_action', action: action, title: title }) });
                 const data = await res.json();
-                if(data.status === "success") { outputDiv.innerHTML = `<div class="prose prose-invert prose-sm animate-fade-in">${marked.parse(data.reply)}</div>`; }
-            } catch(e) { outputDiv.innerHTML = `<span class="text-red-500">Action failed.</span>`; }
+                if(data.status === "success") {
+                    outputDiv.innerHTML = `<div class="prose prose-invert prose-sm animate-fade-in">${marked.parse(data.reply)}</div>`;
+                    // 如果是脫口秀，顯示播放按鈕或直接綁定點擊事件
+                    if (action === 'banter') {
+                        const playBtn = document.createElement('button');
+                        playBtn.className = "mt-4 bg-indigo-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg";
+                        playBtn.innerText = "🔊 播放對話聲音";
+                        playBtn.onclick = () => playBanterSpeech(playBtn, data.reply);
+                        outputDiv.appendChild(playBtn);
+                    }
+                }
+            } catch(e) { outputDiv.innerHTML = `Error.`; }
         };
 
         function renderLearningCard(data) {
@@ -112,10 +174,9 @@
             w.innerHTML = `
             <div class="learn-card w-full max-w-3xl">
                 <div class="p-6 bg-cyan-950/40 border-b border-white/5 flex gap-5 items-start">
-                    ${data.image ? `<img src="data:image/jpeg;base64,${data.image}" class="w-24 h-24 object-cover rounded-2xl shadow-2xl border border-white/10">` : ''}
+                    ${data.image ? `<img src="data:image/jpeg;base64,${data.image}" class="w-24 h-24 object-cover rounded-2xl">` : ''}
                     <div class="flex-1">
                         <h3 class="text-2xl font-bold text-white mb-2">${data.title}</h3>
-                        <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded-full font-black uppercase tracking-widest">${data.topic}</span>
                         <div class="mt-4"><button onclick="speakText(\`${data.article.replace(/"/g, "&quot;")}\`)" class="bg-cyan-600 text-white text-[10px] font-bold px-6 py-2 rounded-full shadow-lg transition-all active:scale-95">🔊 Listen Now</button></div>
                     </div>
                 </div>
@@ -123,13 +184,13 @@
                 <div class="p-4 bg-slate-900/60 grid grid-cols-3 gap-2 border-t border-white/5">
                     <button onclick="toggleSection('${id}-trans')" class="tool-btn">中英對照</button>
                     <button onclick="toggleSection('${id}-vocab')" class="tool-btn">重點單字</button>
-                    <button onclick="toggleSection('${id}-grammar')" class="tool-btn">文法解析 (Bilingual)</button>
-                    <button onclick="triggerLearningAction('banter', '${data.title}', '${id}-ext')" class="tool-btn col-span-1 bg-indigo-900/20">🎙️ 雙語脫口秀</button>
-                    <button onclick="triggerLearningAction('culture', '${data.title}', '${id}-ext')" class="tool-btn col-span-2 bg-amber-900/20">🗺️ 文化深潛 (Cultural Note)</button>
+                    <button onclick="toggleSection('${id}-grammar')" class="tool-btn">文法解析</button>
+                    <button onclick="triggerLearningAction(this, 'banter', '${data.title}', '${id}-ext')" class="tool-btn col-span-1 bg-indigo-900/20">🎙️ 雙語脫口秀</button>
+                    <button onclick="triggerLearningAction(this, 'culture', '${data.title}', '${id}-ext')" class="tool-btn col-span-2 bg-amber-900/20">🗺️ 文化深潛</button>
                 </div>
-                <div id="${id}-trans" class="learn-section bg-slate-800/40"><h4>Full Translation</h4>${marked.parse(data.translation)}</div>
-                <div id="${id}-vocab" class="learn-section bg-slate-800/40"><h4>Vocabulary</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${data.vocab.map(v => `<div class="bg-white/5 p-4 rounded-xl flex justify-between items-center group"><div><span class="font-bold text-emerald-400 text-base">${v.word}</span><p class="text-xs mt-1 text-slate-300">${v.meaning}</p></div><button onclick="speakText('${v.word}')" class="text-slate-500 hover:text-white">🔊</button></div>`).join('')}</div></div>
-                <div id="${id}-grammar" class="learn-section bg-slate-800/40">${marked.parse(data.grammar)}</div>
+                <div id="${id}-trans" class="learn-section"><h4>Translation</h4>${marked.parse(data.translation)}</div>
+                <div id="${id}-vocab" class="learn-section"><h4>Vocabulary</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${data.vocab.map(v => `<div class="bg-white/5 p-4 rounded-xl flex justify-between items-center group"><div><span class="font-bold text-emerald-400 text-base">${v.word}</span><p class="text-xs mt-1 text-slate-300">${v.meaning}</p></div><button onclick="speakText('${v.word}')" class="text-slate-500">🔊</button></div>`).join('')}</div></div>
+                <div id="${id}-grammar" class="learn-section">${marked.parse(data.grammar)}</div>
                 <div id="${id}-ext" class="learn-section bg-indigo-950/20 border-t border-indigo-500/20"></div>
             </div>`;
             chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -141,18 +202,17 @@
         function addMessage(role, text, meta = null) {
             const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group mb-5`;
             const m = document.createElement('div'); m.className = `max-w-[85%] p-5 rounded-3xl ${role === 'user' ? 'bg-emerald-700/90 text-white' : 'bg-[#1e293b] text-slate-200 border border-white/5'} prose prose-invert prose-sm shadow-xl relative`;
-            if(meta && meta.docUrl) m.innerHTML += `<div class="mb-3 bg-indigo-600 text-white p-3 rounded-xl cursor-pointer font-bold text-xs" onclick="window.open('${meta.docUrl}')">📑 Open Report</div>`;
             m.innerHTML += marked.parse(text || "");
             if (role === 'ai') {
                 const c = document.createElement('button');
-                c.className = "mt-4 text-[9px] uppercase font-black bg-slate-800/80 hover:bg-emerald-600 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-auto block border border-white/5";
+                c.className = "mt-4 text-[9px] uppercase font-black bg-slate-800/80 hover:bg-emerald-600 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-auto block";
                 c.innerText = "Copy Content";
                 c.onclick = () => { navigator.clipboard.writeText(m.innerText.replace("Copy Content", "").trim()); c.innerText = "✅ Copied!"; };
                 m.appendChild(c);
             }
-            w.appendChild(m); chatWindow.scrollTop = chatWindow.scrollHeight;
+            w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
-        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id = 'loader'; d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 ml-4 flex items-center gap-1'; d.innerHTML = `<span class="loading-dots">⚡ ${t.toUpperCase()}</span>`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { document.getElementById('loader')?.remove(); } }
+        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id = 'loader'; d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 ml-4 flex items-center gap-1'; d.innerHTML = `<span class="loading-dots">⚡ ${t.toUpperCase()}</span>`; chatWindow.appendChild(d); } else { document.getElementById('loader')?.remove(); } }
     </script>
 </body>
 </html>
