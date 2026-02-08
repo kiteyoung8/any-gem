@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v36.3 : Zen & Chinese Master</title>
+    <title>anyGem v36.4 : Full Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -13,7 +13,7 @@
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
         .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); }
         
-        /* ✨ 禪定模式樣式 */
+        /* 禪定模式樣式 */
         #zen-editor { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); z-index: 100; }
         #zen-editor.active { transform: translateY(0); }
 
@@ -23,13 +23,10 @@
         .tool-btn { @apply flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-2xl transition-all active:scale-95 border border-white/5 bg-slate-800/40 hover:bg-slate-700 text-[11px] font-bold text-slate-400; }
         .playing { @apply ring-2 ring-emerald-500 animate-pulse bg-emerald-900/40 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]; }
 
-        /* ✨ 脫口秀劇本樣式優化 */
+        /* 劇本排版樣式 */
         #ext-content .prose p { margin-bottom: 2px; color: #ffffff; font-weight: 600; }
         .prose p:has(+ p:contains("(")) { margin-bottom: 0px; }
-        .prose p:contains("(") { 
-            @apply text-slate-500 text-[10px] italic mb-4 block; 
-            line-height: 1.4;
-        }
+        .prose p:contains("(") { @apply text-slate-500 text-[10px] italic mb-4 block; line-height: 1.4; }
 
         .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
         @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
@@ -39,8 +36,7 @@
 
     <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex justify-between items-center z-40">
         <div class="flex flex-col">
-            <span class="text-xl font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v36.3</span></span>
-            <span class="text-[8px] text-emerald-500 font-mono tracking-[0.2em] uppercase opacity-60">Integrated Master</span>
+            <span class="text-xl font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v36.4</span></span>
         </div>
         <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold cursor-pointer">
             <option value="chat">💬 高速對話</option>
@@ -57,32 +53,31 @@
     <div id="zen-editor" class="fixed inset-0 bg-[#020617]/98 p-6 flex flex-col">
         <div class="flex justify-between items-center mb-6">
             <span class="text-emerald-500 font-bold text-xs tracking-widest uppercase">Zen Mode Editor</span>
-            <button onclick="closeZenMode()" class="bg-emerald-600 text-white px-8 py-2 rounded-full text-xs font-bold">Apply & Close</button>
+            <button onclick="closeZenMode()" class="bg-emerald-600 text-white px-8 py-2 rounded-full text-xs font-bold shadow-lg">Apply & Close</button>
         </div>
-        <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-xl outline-none resize-none font-serif leading-relaxed" placeholder="在這裡編輯長文本..."></textarea>
+        <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-xl outline-none resize-none font-serif leading-relaxed" placeholder="在這裡修改長文..."></textarea>
     </div>
 
     <footer class="p-4 bg-[#0f172a] border-t border-emerald-900/30 z-40">
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
             <input type="file" id="file-upload" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt">
-            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 shrink-0 border border-white/5 active:scale-95">
+            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 border border-white/5 shrink-0 active:scale-95 transition-all">
                 <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             </button>
-            <button onclick="openZenMode()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 shrink-0 border border-white/5 active:scale-95">
+            <button onclick="openZenMode()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 border border-white/5 shrink-0 active:scale-95 transition-all">
                 <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
             </button>
 
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-emerald-500 outline-none transition-all" placeholder="輸入主題或上傳內容...">
-            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg shadow-emerald-900/40 uppercase italic active:scale-95 transition-all">Send</button>
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-emerald-500 outline-none transition-all" placeholder="輸入指令或上傳檔案...">
+            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg uppercase italic active:scale-95 transition-all">Send</button>
         </div>
     </footer>
 
     <script>
-        // ✅ 填入您的專屬 GAS 網址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input'), sessId = "V363_" + Math.random().toString(36).substr(2, 6).toUpperCase();
-        let currentFileData = { base64: null, mimeType: null };
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input'), sessId = "V364_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+        let currentFile = { base64: null, mimeType: null };
 
         function updateModeUI() {
             const themes = { chat: "bg-emerald-600", report: "bg-blue-600", art: "bg-pink-600", calendar: "bg-fuchsia-600", presentation: "bg-orange-600", learning: "bg-cyan-600" };
@@ -90,49 +85,26 @@
         }
         updateModeUI();
 
-        // 🧘 Zen Mode 邏輯
+        // ✨ 禪定模式邏輯
         function openZenMode() { zenInput.value = input.value; zenEditor.classList.add('active'); zenInput.focus(); }
         function closeZenMode() { input.value = zenInput.value; zenEditor.classList.remove('active'); }
 
-        // 📁 檔案處理
+        // ✨ 檔案上傳處理
         document.getElementById('file-upload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(evt) {
-                currentFileData.base64 = evt.target.result.split(',')[1];
-                currentFileData.mimeType = file.type;
+                currentFile.base64 = evt.target.result.split(',')[1];
+                currentFile.mimeType = file.type;
                 input.value = `[已附加檔案: ${file.name}] ` + input.value;
             };
             reader.readAsDataURL(file);
         });
 
-        // 🎙️ 播放器：過濾 Emoji 與翻譯
-        async function playBanterSpeech(btnElement, text) {
-            if (window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); btnElement.classList.remove('playing'); btnElement.innerText = "🔊 播放對話"; return; }
-            btnElement.classList.add('playing'); btnElement.innerText = "🛑 停止";
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l !== "");
-            let currentLine = 0;
-            function speakNext() {
-                if (currentLine >= lines.length || !btnElement.classList.contains('playing')) { btnElement.classList.remove('playing'); btnElement.innerText = "🔊 播放對話"; return; }
-                const line = lines[currentLine];
-                if (line.startsWith('(')) { currentLine++; speakNext(); return; }
-                if (line.includes(':')) {
-                    const isHostA = line.includes('Host A');
-                    const speech = line.split(':')[1].trim().replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF])/g, '');
-                    const utterance = new SpeechSynthesisUtterance(speech);
-                    utterance.lang = 'en-US';
-                    utterance.pitch = isHostA ? 1.3 : 0.6;
-                    utterance.onend = () => { currentLine++; setTimeout(speakNext, 450); };
-                    window.speechSynthesis.speak(utterance);
-                } else { currentLine++; speakNext(); }
-            }
-            speakNext();
-        }
-
         async function handleSend() {
             const text = input.value.trim();
-            if(!text && !currentFileData.base64) return;
+            if(!text && !currentFile.base64) return;
             addMessage('user', text); input.value = '';
             setLoading(true, "AI Processing...");
             try {
@@ -140,13 +112,13 @@
                     method: 'POST', 
                     body: JSON.stringify({ 
                         message: text, 
-                        mode: modeSelect.value, 
-                        imageBase64: currentFileData.base64, 
-                        mimeType: currentFileData.mimeType 
+                        mode: modeSelect.value,
+                        imageBase64: currentFile.base64,
+                        mimeType: currentFile.mimeType
                     }) 
                 });
                 const data = await res.json();
-                currentFileData = { base64: null, mimeType: null }; // 重設檔案
+                currentFile = { base64: null, mimeType: null }; // 重設
                 if(data.status === "success") {
                     if (data.type === 'lesson') renderLearningCard(data.data);
                     else if (data.type === 'art') renderArtCard(data.image);
@@ -159,7 +131,7 @@
             const w = document.createElement('div'); w.className = "flex animate-fade-in w-full mb-8 justify-start";
             w.innerHTML = `<div class="bg-slate-900/80 p-2 rounded-3xl border border-white/10 shadow-2xl max-w-sm">
                 <img src="data:image/jpeg;base64,${base64}" class="rounded-2xl w-full object-cover aspect-square">
-                <a href="data:image/jpeg;base64,${base64}" download="anyGem_art.jpg" class="block text-center text-[10px] text-pink-400 mt-2 font-black uppercase tracking-widest">Download Image</a>
+                <a href="data:image/jpeg;base64,${base64}" download="anyGem_art.jpg" class="block text-center text-[10px] text-pink-400 mt-2 font-bold uppercase tracking-widest">Download Image</a>
             </div>`;
             chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
@@ -172,7 +144,7 @@
             const data = await res.json();
             outputDiv.innerHTML = `<div class="prose prose-invert prose-sm animate-fade-in" id="ext-content">${marked.parse(data.reply)}</div>`;
             if (action === 'banter') {
-                const pb = document.createElement('button'); pb.className = "mt-4 bg-indigo-600 text-white text-[10px] font-bold px-5 py-2 rounded-lg transition-all active:scale-95 shadow-lg";
+                const pb = document.createElement('button'); pb.className = "mt-4 bg-indigo-600 text-white text-[10px] font-bold px-5 py-2 rounded-lg";
                 pb.innerText = "🔊 播放對話"; pb.onclick = () => playBanterSpeech(pb, data.reply);
                 outputDiv.appendChild(pb);
             }
@@ -191,11 +163,11 @@
                     <button onclick="toggleSection('${id}-trans')" class="tool-btn">中英對照</button>
                     <button onclick="toggleSection('${id}-vocab')" class="tool-btn">重點單字</button>
                     <button onclick="toggleSection('${id}-grammar')" class="tool-btn">文法解析 (繁中)</button>
-                    <button onclick="triggerLearningAction(this, 'banter', '${data.title}', '${id}-ext')" class="tool-btn col-span-1 bg-indigo-900/20">🎙️ 雙語脫口秀</button>
+                    <button onclick="triggerLearningAction(this, 'banter', '${data.title}', '${id}-ext')" class="tool-btn col-span-1 bg-indigo-900/20">🎙️ 脫口秀</button>
                     <button onclick="triggerLearningAction(this, 'culture', '${data.title}', '${id}-ext')" class="tool-btn col-span-2 bg-amber-900/20">🗺️ 文化深潛 (繁中)</button>
                 </div>
                 <div id="${id}-trans" class="learn-section"><h4>Bilingual Translation</h4>${marked.parse(data.translation)}</div>
-                <div id="${id}-vocab" class="learn-section"><h4>Vocabulary</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${data.vocab.map(v => `<div class="bg-white/5 p-4 rounded-xl flex justify-between items-center group"><div><span class="font-bold text-emerald-400 text-base">${v.word}</span><p class="text-xs mt-1 text-slate-300">${v.meaning}</p></div><button onclick="speakText('${v.word}')" class="text-slate-500">🔊</button></div>`).join('')}</div></div>
+                <div id="${id}-vocab" class="learn-section"><h4>Vocabulary</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${data.vocab.map(v => `<div class="bg-white/5 p-4 rounded-xl flex justify-between items-center"><div><span class="font-bold text-emerald-400 text-base">${v.word}</span><p class="text-xs mt-1 text-slate-300">${v.meaning}</p></div><button onclick="speakText('${v.word}')" class="text-slate-500">🔊</button></div>`).join('')}</div></div>
                 <div id="${id}-grammar" class="learn-section">${marked.parse(data.grammar)}</div>
                 <div id="${id}-ext" class="learn-section bg-indigo-950/20 border-t border-indigo-500/20"></div>
             </div>`;
@@ -207,11 +179,23 @@
 
         function addMessage(role, text) {
             const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group mb-5`;
-            const m = document.createElement('div'); m.className = `max-w-[85%] p-5 rounded-3xl ${role === 'user' ? 'bg-emerald-700/90 text-white' : 'bg-[#1e293b] text-slate-200 border border-white/5'} prose prose-invert prose-sm shadow-xl relative`;
-            m.innerHTML += marked.parse(text || "");
+            const m = document.createElement('div'); m.className = `max-w-[85%] p-5 rounded-3xl ${role === 'user' ? 'bg-emerald-700/90 text-white' : 'bg-[#1e293b] text-slate-200 border border-white/5'} prose prose-invert prose-sm shadow-xl`;
+            m.innerHTML = marked.parse(text || "");
             w.appendChild(m); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
-        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id = 'loader'; d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 ml-4 flex items-center gap-1'; d.innerHTML = `<span class="loading-dots">⚡ ${t.toUpperCase()}</span>`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { document.getElementById('loader')?.remove(); } }
+
+        function setLoading(l, t) {
+            btn.disabled = l;
+            if(l){
+                const d = document.createElement('div'); d.id = 'loader';
+                d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 ml-4 flex items-center gap-1';
+                d.innerHTML = `<span class="loading-dots">⚡ ${t.toUpperCase()}</span>`;
+                chatWindow.appendChild(d);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            } else {
+                document.getElementById('loader')?.remove();
+            }
+        }
     </script>
 </body>
 </html>
