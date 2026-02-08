@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v34.8 : Script Layout</title>
+    <title>anyGem v35.0 : Final Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -13,38 +13,27 @@
         .animate-fade-in { animation: fadeInUp 0.4s ease-out forwards; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
-        .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); }
         .learn-card { background: rgba(15, 23, 42, 0.98); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; overflow: hidden; backdrop-filter: blur(20px); box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
         .learn-section { display: none; padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); }
         .learn-section.active { display: block; animation: fadeInUp 0.3s ease; }
         .tool-btn { @apply flex flex-col items-center justify-center gap-1.5 p-3.5 rounded-2xl transition-all active:scale-95 border border-white/5 bg-slate-800/40 hover:bg-slate-700 text-[11px] font-bold text-slate-400; }
         .tool-btn:hover { @apply text-white border-emerald-500/40 bg-emerald-900/20 shadow-lg; }
         .playing { @apply ring-2 ring-emerald-500 animate-pulse bg-emerald-900/40 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]; }
-        
-        /* 劇本對話樣式微調 */
-        .prose p { margin-bottom: 0.5rem; }
-        .prose p:has(+ p:contains("(")) { margin-bottom: 0px; color: white; font-weight: bold; }
-        .prose p:contains("(") { @apply text-slate-500 text-xs italic mb-4; }
-
-        #zen-editor { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100%); z-index: 100; }
-        #zen-editor.active { transform: translateY(0); }
         .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
         @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%, 100% { content: ''; } }
     </style>
 </head>
-<body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden relative">
+<body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden">
 
     <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex justify-between items-center z-40">
         <div class="flex flex-col">
-            <span class="text-xl font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v34.8</span></span>
-            <span class="text-[8px] text-emerald-500 font-mono tracking-[0.2em] uppercase opacity-60">Script Layout Ed.</span>
+            <span class="text-xl font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v35.0</span></span>
+            <span class="text-[8px] text-emerald-500 font-mono tracking-[0.2em] uppercase opacity-60">Final Stable Edition</span>
         </div>
-        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold">
+        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold cursor-pointer">
             <option value="chat">💬 高速對話</option>
-            <option value="learning">🇬🇧 英文家教</option>
+            <option value="learning" selected>🇬🇧 英文家教</option>
             <option value="report">📑 深度研報</option>
-            <option value="calendar">📅 日曆管家</option>
-            <option value="presentation">📊 智能簡報</option>
         </select>
     </header>
 
@@ -53,22 +42,19 @@
     <footer class="p-4 bg-[#0f172a] border-t border-emerald-900/30 z-40">
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
             <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:border-emerald-500 outline-none transition-all" placeholder="輸入主題...">
-            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg shadow-emerald-900/40 uppercase italic active:scale-95 transition-all">Send</button>
+            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg uppercase italic active:scale-95 transition-all">Send</button>
         </div>
     </footer>
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), sessId = "V348_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), sessId = "V35_" + Math.random().toString(36).substr(2, 6).toUpperCase();
 
         function updateModeUI() {
-            const m = modeSelect.value;
-            const themes = { chat: "bg-emerald-600", report: "bg-blue-600", calendar: "bg-fuchsia-600", presentation: "bg-orange-600", learning: "bg-cyan-600" };
-            btn.className = `${themes[m]} text-white px-6 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase italic`;
+            const themes = { chat: "bg-emerald-600", report: "bg-blue-600", learning: "bg-cyan-600" };
+            btn.className = `${themes[modeSelect.value]} text-white px-6 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase italic`;
         }
-        updateModeUI();
 
-        // ✨ 智慧播放器：識別發言並跳過翻譯行
         async function playBanterSpeech(btnElement, text) {
             if (window.speechSynthesis.speaking) {
                 window.speechSynthesis.cancel();
@@ -76,50 +62,23 @@
                 btnElement.innerText = "🔊 播放對話";
                 return;
             }
-
             btnElement.classList.add('playing');
             btnElement.innerText = "🛑 停止";
-
-            const allLines = text.split('\n').map(l => l.trim()).filter(l => l !== "");
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l !== "");
             let currentLine = 0;
-
             function speakNext() {
-                if (currentLine >= allLines.length) {
+                if (currentLine >= lines.length || !btnElement.classList.contains('playing')) {
                     btnElement.classList.remove('playing');
                     btnElement.innerText = "🔊 播放對話";
                     return;
                 }
-
-                const line = allLines[currentLine];
-                
-                // 如果是翻譯行（以 ( 開頭），直接跳過到下一行
-                if (line.startsWith('(')) {
-                    currentLine++;
-                    speakNext();
-                    return;
-                }
-
-                // 如果是發言行 (Host A: ...)
-                if (line.includes(':')) {
-                    const isHostA = line.includes('Host A');
-                    const englishPart = line.split(':')[1].trim();
-
-                    const utterance = new SpeechSynthesisUtterance(englishPart);
-                    utterance.lang = 'en-US';
-                    utterance.pitch = isHostA ? 1.3 : 0.5;
-                    utterance.rate = isHostA ? 1.0 : 0.85;
-
-                    utterance.onend = () => {
-                        currentLine++;
-                        setTimeout(speakNext, 400); 
-                    };
-
-                    window.speechSynthesis.speak(utterance);
-                } else {
-                    // 其他雜訊行直接跳過
-                    currentLine++;
-                    speakNext();
-                }
+                const line = lines[currentLine];
+                if (line.startsWith('(')) { currentLine++; speakNext(); return; }
+                const utterance = new SpeechSynthesisUtterance(line.split(':')[1] || line);
+                utterance.lang = 'en-US';
+                utterance.pitch = line.includes('Host A') ? 1.3 : 0.6;
+                utterance.onend = () => { currentLine++; setTimeout(speakNext, 500); };
+                window.speechSynthesis.speak(utterance);
             }
             speakNext();
         }
@@ -128,13 +87,15 @@
             const text = input.value.trim();
             if(!text) return;
             addMessage('user', text); input.value = '';
-            setLoading(true, "Preparing Lesson...");
+            setLoading(true, "AI Processing...");
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ message: text, session_id: sessId, mode: modeSelect.value }) });
                 const data = await res.json();
                 if(data.status === "success") {
                     if (data.type === 'lesson') renderLearningCard(data.data);
-                    else addMessage('ai', data.reply, { model: data.model });
+                    else addMessage('ai', data.reply);
+                } else {
+                    addMessage('ai', "🚨 Error: " + data.error);
                 }
             } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
         }
@@ -142,16 +103,16 @@
         window.triggerLearningAction = async (btn, action, title, outputId) => {
             const outputDiv = document.getElementById(outputId);
             outputDiv.classList.add('active');
-            outputDiv.innerHTML = `<div class="text-emerald-400 text-xs font-bold loading-dots">AI Generating ${action.toUpperCase()}</div>`;
+            outputDiv.innerHTML = `<div class="text-emerald-400 text-xs font-bold loading-dots">Generating</div>`;
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ mode: 'learning_action', action: action, title: title }) });
                 const data = await res.json();
                 if(data.status === "success") {
-                    outputDiv.innerHTML = `<div class="prose prose-invert prose-sm animate-fade-in">${marked.parse(data.reply)}</div>`;
+                    outputDiv.innerHTML = `<div class="prose prose-invert prose-sm">${marked.parse(data.reply)}</div>`;
                     if (action === 'banter') {
                         const playBtn = document.createElement('button');
-                        playBtn.className = "mt-4 bg-indigo-600 text-white text-[10px] font-bold px-6 py-2 rounded-lg";
-                        playBtn.innerText = "🔊 播放對話聲音";
+                        playBtn.className = "mt-4 bg-indigo-600 text-white text-[10px] font-bold px-4 py-2 rounded-lg";
+                        playBtn.innerText = "🔊 播放對話";
                         playBtn.onclick = () => playBanterSpeech(playBtn, data.reply);
                         outputDiv.appendChild(playBtn);
                     }
@@ -164,13 +125,11 @@
             const w = document.createElement('div'); w.className = "flex animate-fade-in w-full mb-8";
             w.innerHTML = `
             <div class="learn-card w-full max-w-3xl">
-                <div class="p-6 bg-cyan-950/40 border-b border-white/5 flex gap-5 items-start">
-                    <div class="flex-1">
-                        <h3 class="text-2xl font-bold text-white mb-2">${data.title}</h3>
-                        <div class="mt-4"><button onclick="speakText(\`${data.article.replace(/"/g, "&quot;")}\`)" class="bg-cyan-600 text-white text-[10px] font-bold px-6 py-2 rounded-full shadow-lg">🔊 朗讀文章</button></div>
-                    </div>
+                <div class="p-6 bg-cyan-950/40 border-b border-white/5">
+                    <h3 class="text-2xl font-bold text-white mb-2">${data.title}</h3>
+                    <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded-full font-black uppercase tracking-widest">${data.topic}</span>
                 </div>
-                <div class="p-8 prose prose-invert prose-sm max-w-none leading-relaxed text-slate-200 font-serif text-lg">${marked.parse(data.article)}</div>
+                <div class="p-8 prose prose-invert prose-sm max-w-none text-slate-200 font-serif text-lg">${marked.parse(data.article)}</div>
                 <div class="p-4 bg-slate-900/60 grid grid-cols-3 gap-2 border-t border-white/5">
                     <button onclick="toggleSection('${id}-trans')" class="tool-btn">中英對照</button>
                     <button onclick="toggleSection('${id}-vocab')" class="tool-btn">重點單字</button>
@@ -178,8 +137,8 @@
                     <button onclick="triggerLearningAction(this, 'banter', '${data.title}', '${id}-ext')" class="tool-btn col-span-1 bg-indigo-900/20">🎙️ 雙語脫口秀</button>
                     <button onclick="triggerLearningAction(this, 'culture', '${data.title}', '${id}-ext')" class="tool-btn col-span-2 bg-amber-900/20">🗺️ 文化深潛</button>
                 </div>
-                <div id="${id}-trans" class="learn-section"><h4>Bilingual Translation</h4>${marked.parse(data.translation)}</div>
-                <div id="${id}-vocab" class="learn-section"><h4>Vocabulary</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${data.vocab.map(v => `<div class="bg-white/5 p-4 rounded-xl flex justify-between items-center"><div><span class="font-bold text-emerald-400 text-base">${v.word}</span><p class="text-xs mt-1 text-slate-300">${v.meaning}</p></div><button onclick="speakText('${v.word}')" class="text-slate-500">🔊</button></div>`).join('')}</div></div>
+                <div id="${id}-trans" class="learn-section"><h4>Translation</h4>${marked.parse(data.translation)}</div>
+                <div id="${id}-vocab" class="learn-section"><h4>Vocabulary</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-3">${data.vocab.map(v => `<div class="bg-white/5 p-4 rounded-xl flex justify-between"><div><span class="font-bold text-emerald-400">${v.word}</span><p class="text-xs text-slate-300">${v.meaning}</p></div></div>`).join('')}</div></div>
                 <div id="${id}-grammar" class="learn-section">${marked.parse(data.grammar)}</div>
                 <div id="${id}-ext" class="learn-section bg-indigo-950/20 border-t border-indigo-500/20"></div>
             </div>`;
@@ -187,22 +146,25 @@
         }
 
         window.toggleSection = (id) => { document.getElementById(id).classList.toggle('active'); };
-        window.speakText = (text) => { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.95; window.speechSynthesis.speak(u); };
 
-        function addMessage(role, text, meta = null) {
-            const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group mb-5`;
-            const m = document.createElement('div'); m.className = `max-w-[85%] p-5 rounded-3xl ${role === 'user' ? 'bg-emerald-700/90 text-white' : 'bg-[#1e293b] text-slate-200 border border-white/5'} prose prose-invert prose-sm shadow-xl relative`;
-            m.innerHTML += marked.parse(text || "");
-            if (role === 'ai') {
-                const c = document.createElement('button');
-                c.className = "mt-4 text-[9px] uppercase font-black bg-slate-800/80 hover:bg-emerald-600 px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all ml-auto block";
-                c.innerText = "Copy Content";
-                c.onclick = () => { navigator.clipboard.writeText(m.innerText.replace("Copy Content", "").trim()); c.innerText = "✅ Copied!"; };
-                m.appendChild(c);
-            }
-            w.appendChild(m); chatWindow.scrollTop = chatWindow.scrollHeight;
+        function addMessage(role, text) {
+            const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in mb-5`;
+            const m = document.createElement('div'); m.className = `max-w-[85%] p-5 rounded-3xl ${role === 'user' ? 'bg-emerald-700 text-white' : 'bg-[#1e293b] text-slate-200'} prose prose-invert prose-sm shadow-xl`;
+            m.innerHTML = marked.parse(text || "");
+            w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
-        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id = 'loader'; d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 ml-4 flex items-center gap-1'; d.innerHTML = `<span class="loading-dots">⚡ ${t.toUpperCase()}</span>`; chatWindow.appendChild(d); } else { document.getElementById('loader')?.remove(); } }
+
+        function setLoading(l, t) {
+            btn.disabled = l;
+            if(l){
+                const d = document.createElement('div'); d.id = 'loader';
+                d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 ml-4';
+                d.innerHTML = `<span class="loading-dots">⚡ ${t.toUpperCase()}</span>`;
+                chatWindow.appendChild(d);
+            } else {
+                document.getElementById('loader')?.remove();
+            }
+        }
     </script>
 </body>
 </html>
