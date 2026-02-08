@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v22.0 : Interactive Studio</title>
+    <title>anyGem v23.0 : Motion Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
@@ -30,9 +30,9 @@
             <div class="flex flex-col">
                 <div class="flex items-center space-x-2">
                     <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_12px_#10b981]"></div>
-                    <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v22.0</span></span>
+                    <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v23.0</span></span>
                 </div>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-[0.2em] uppercase opacity-70">Interactive Studio</span>
+                <span class="text-[8px] text-emerald-400 font-mono tracking-[0.2em] uppercase opacity-70">Motion Engine Active</span>
             </div>
             
             <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 focus:border-emerald-500 outline-none font-bold cursor-pointer transition-colors">
@@ -40,28 +40,12 @@
                 <option value="search">🌍 深度研究</option>
                 <option value="drawing">🎨 藝術生圖</option>
                 <option value="presentation">📊 智能簡報</option>
+                <option value="video">🎥 Veo 影片創作</option>
             </select>
         </div>
 
         <div id="ppt-settings" class="bg-emerald-900/10 border-emerald-500/20 rounded-xl border-0 grid grid-cols-2 gap-4 text-xs">
-            <div class="flex flex-col gap-1.5">
-                <label class="text-emerald-400 font-bold uppercase tracking-wider text-[10px]">Visual Strategy (視覺策略)</label>
-                <select id="ppt-visual" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none focus:border-emerald-500 transition-colors">
-                    <option value="hybrid">🌿 混合平衡 (推薦)</option>
-                    <option value="geometric">🔷 純粹幾何 (不生圖)</option>
-                    <option value="ai_art">✨ AI 夢幻全生圖</option>
-                </select>
             </div>
-            <div class="flex flex-col gap-1.5">
-                <label class="text-emerald-400 font-bold uppercase tracking-wider text-[10px]">Theme Style (主題風格)</label>
-                <select id="ppt-theme" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none focus:border-emerald-500 transition-colors">
-                    <option value="Professional">💼 專業商務 (深藍/白)</option>
-                    <option value="Minimalist">⚪ 極簡主義 (黑/白)</option>
-                    <option value="Cyberpunk">🔮 賽博龐克 (黑/霓虹)</option>
-                    <option value="Warm">🍂 溫暖人文 (褐/米)</option>
-                </select>
-            </div>
-        </div>
     </header>
 
     <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 scroll-smooth bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.05),transparent)]"></main>
@@ -86,7 +70,7 @@
     </footer>
 
     <script>
-        // ✅ 網址已更新
+        // ✅ 網址已設定
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
 
         const chatWindow = document.getElementById('chat-window'),
@@ -96,22 +80,35 @@
               scanner = document.getElementById('image-scanner'),
               modeSelect = document.getElementById('mode-select'),
               pptSettings = document.getElementById('ppt-settings'),
-              sessId = "STUDIO_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+              sessId = "VEO_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         
         let activeFile = null;
 
         function updateModeUI() {
             const m = modeSelect.value;
-            const themes = { chat: "bg-emerald-600", search: "bg-blue-600", drawing: "bg-pink-600", presentation: "bg-orange-600" };
+            const themes = { chat: "bg-emerald-600", search: "bg-blue-600", drawing: "bg-pink-600", presentation: "bg-orange-600", video: "bg-purple-600" };
             
             // 按鈕與輸入框變色
             btn.className = `${themes[m]} text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all shadow-lg disabled:opacity-50 uppercase italic tracking-tighter`;
             
-            // 面板開關邏輯
+            // ✨ 設定面板動態切換邏輯
             if (m === 'presentation') {
+                pptSettings.innerHTML = `
+                    <div class="flex flex-col gap-1.5"><label class="text-emerald-400 font-bold uppercase text-[10px]">Visual Strategy</label><select id="ppt-visual" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="hybrid">🌿 混合平衡</option><option value="geometric">🔷 純粹幾何</option><option value="ai_art">✨ AI 全生圖</option></select></div>
+                    <div class="flex flex-col gap-1.5"><label class="text-emerald-400 font-bold uppercase text-[10px]">Theme Style</label><select id="ppt-theme" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="Professional">💼 專業商務</option><option value="Cyberpunk">🔮 賽博龐克</option><option value="Warm">🍂 溫暖人文</option></select></div>
+                `;
                 pptSettings.classList.add('open');
-                input.placeholder = "請輸入簡報主題 (上方可調整風格)...";
-            } else {
+                input.placeholder = "輸入簡報主題...";
+            } 
+            else if (m === 'video') {
+                pptSettings.innerHTML = `
+                    <div class="flex flex-col gap-1.5"><label class="text-purple-400 font-bold uppercase text-[10px]">Cinematic Style</label><select id="video-style" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="Cinematic">🎬 電影質感</option><option value="Anime">🎌 日系動畫</option><option value="Claymation">🧱 黏土動畫</option><option value="Cyberpunk">🔮 未來科幻</option></select></div>
+                    <div class="flex flex-col gap-1.5"><label class="text-purple-400 font-bold uppercase text-[10px]">Camera Movement</label><select id="video-cam" class="bg-[#1e293b] text-white border border-white/10 rounded-lg p-2 outline-none"><option value="Static">🛑 固定鏡頭</option><option value="Pan">↔️ 水平運鏡 (Pan)</option><option value="Zoom In">🔍 緩慢推進 (Zoom)</option><option value="Drone">🚁 空拍視角 (Drone)</option></select></div>
+                `;
+                pptSettings.classList.add('open');
+                input.placeholder = "描述你想看到的畫面動作 (例如: 暴雨中的霓虹街道)...";
+            }
+            else {
                 pptSettings.classList.remove('open');
                 input.placeholder = "輸入訊息...";
             }
@@ -134,17 +131,17 @@
 
             addMessage('user', text);
             
-            // 📦 打包簡報參數
-            const pptOptions = {
-                visual: document.getElementById('ppt-visual').value,
-                theme: document.getElementById('ppt-theme').value
-            };
+            // 📦 收集參數 (簡報或影片)
+            let extraOptions = {};
+            if (modeSelect.value === 'presentation') {
+                extraOptions = { visual: document.getElementById('ppt-visual').value, theme: document.getElementById('ppt-theme').value };
+            } else if (modeSelect.value === 'video') {
+                extraOptions = { style: document.getElementById('video-style').value, camera: document.getElementById('video-cam').value };
+            }
 
             const payload = { 
-                message: text, 
-                session_id: sessId, 
-                mode: modeSelect.value,
-                pptOptions: pptOptions // 傳送參數
+                message: text, session_id: sessId, mode: modeSelect.value,
+                options: extraOptions 
             };
             
             input.value = '';
@@ -156,9 +153,10 @@
                 clearFile();
             }
 
-            setLoading(true, modeSelect.value === 'presentation' ? "Designing..." : "Thinking...");
+            setLoading(true, modeSelect.value === 'video' ? "Generating Video..." : "Processing...");
 
             try {
+                // Video 模式通常較久，使用 30s timeout
                 const res = await fetch(GAS_URL, { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -168,12 +166,12 @@
 
                 const data = await res.json();
                 if(data.status === "success") {
-                    addMessage('ai', data.reply, { model: data.model, cached: data.cached, image: data.image, mime: data.mime });
+                    addMessage('ai', data.reply, { model: data.model, cached: data.cached, image: data.image, mime: data.mime, video: data.videoUrl });
                 } else {
                     addMessage('ai', "🚨 Error: " + data.error);
                 }
             } catch (e) {
-                addMessage('ai', "❌ 連線失敗：請確認 GAS 部署權限。");
+                addMessage('ai', "❌ 連線失敗：可能是生成時間過長或部署問題。");
             } finally {
                 setLoading(false);
                 scanner.classList.add('hidden');
@@ -186,6 +184,21 @@
             const msgBox = document.createElement('div');
             msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl relative`;
 
+            // 1. 影片渲染 (✨ Veo 核心)
+            if(meta && meta.video) {
+                const vidDiv = document.createElement('div');
+                vidDiv.className = "mb-4 rounded-xl overflow-hidden shadow-2xl border border-purple-500/30 bg-black";
+                vidDiv.innerHTML = `
+                    <video controls autoplay loop muted class="w-full aspect-video">
+                        <source src="${meta.video}" type="video/mp4">
+                        您的瀏覽器不支援影片標籤。
+                    </video>
+                    <div class="p-2 text-[10px] text-purple-300 bg-purple-900/20 text-center font-mono">🎥 Generated by Veo 3.1</div>
+                `;
+                msgBox.appendChild(vidDiv);
+            }
+
+            // 2. 圖片渲染
             if(meta && meta.image) {
                 const img = document.createElement('img');
                 img.src = `data:${meta.mime || 'image/png'};base64,${meta.image}`;
@@ -193,7 +206,8 @@
                 msgBox.appendChild(img);
             }
 
-            const safeText = (text && text !== "undefined") ? text : (meta && meta.image ? "🎨 *視覺生成完畢*" : "");
+            // 3. 文字渲染
+            const safeText = (text && text !== "undefined") ? text : (meta && (meta.image || meta.video) ? "" : "");
             if (safeText) {
                 const tNode = document.createElement('div');
                 tNode.innerHTML = marked.parse(safeText);
@@ -229,7 +243,6 @@
             if (window.hljs) hljs.highlightAll();
         }
 
-        // 輔助函式 (保持精簡)
         function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id = 'loader'; d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 px-2'; d.innerHTML = `⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { const e = document.getElementById('loader'); if(e) e.remove(); } }
         function toBase64(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); }); }
         function clearFile() { activeFile = null; fileStatus.classList.add('hidden'); scanner.classList.add('hidden'); }
