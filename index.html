@@ -1,457 +1,144 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <title>anyGem v20.4 : Clipboard Integration</title>
-
+    <title>anyGem v38.9 : Presentation Evolution</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-
     <style>
-
         @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }
-
         .animate-scan { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(16, 185, 129, 0.2), transparent); animation: scanline 3s linear infinite; }
-
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-
         .animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
-
-        .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); margin: 12px 0; position: relative; }
-
         ::-webkit-scrollbar { width: 4px; }
-
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
-
-        .copy-btn-active { background-color: #10b981 !important; color: white !important; }
-
+        /* 簡報專屬設定區動畫 */
+        #ppt-settings { transition: all 0.3s ease; max-height: 0; overflow: hidden; opacity: 0; }
+        #ppt-settings.show { max-height: 200px; opacity: 1; margin-bottom: 1rem; }
     </style>
-
 </head>
-
 <body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden">
 
-
-
-    <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex justify-between items-center shadow-2xl z-50 backdrop-blur-md">
-
+    <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex justify-between items-center shadow-2xl z-50">
         <div class="flex flex-col">
-
             <div class="flex items-center space-x-2">
-
                 <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_12px_#10b981]"></div>
-
-                <span class="text-lg font-black text-white tracking-tighter uppercase italic">anyGem <span class="text-emerald-500">v20.4</span></span>
-
+                <span class="text-lg font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500">v38.9</span></span>
             </div>
-
-            <span class="text-[8px] text-emerald-400 font-mono tracking-[0.2em] uppercase opacity-70">Clipboard & Bridge Active</span>
-
+            <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Design Logic Integrated</span>
         </div>
-
-        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 focus:border-emerald-500 outline-none font-bold cursor-pointer">
-
+        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold">
             <option value="chat">💬 高速對話</option>
-
             <option value="search">🌍 深度研究</option>
-
             <option value="drawing">🎨 藝術生圖</option>
-
             <option value="presentation">📊 智能簡報</option>
-
+            <option value="calendar">📅 日曆管家</option>
         </select>
-
     </header>
-
-
 
     <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 scroll-smooth bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.05),transparent)]"></main>
 
-
-
-    <div id="file-status" class="hidden px-4 pb-2 text-xs text-emerald-400 flex items-center gap-2 animate-fade-in">
-
-        <div class="relative overflow-hidden rounded-lg bg-emerald-900/20 p-2 border border-emerald-500/30 backdrop-blur-md">
-
-            <span id="filename-display" class="font-bold text-white truncate max-w-[150px]"></span>
-
-            <div id="image-scanner" class="hidden animate-scan"></div>
-
+    <div id="ppt-settings" class="px-4">
+        <div class="bg-emerald-900/10 border border-emerald-500/20 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center gap-3">
+                <label class="text-[10px] font-bold text-emerald-400 uppercase w-20">版面策略</label>
+                <select id="ppt-strategy" class="bg-slate-800 text-white text-xs p-2 rounded-lg outline-none w-full">
+                    <option value="native">🌿 原生幾何 (Geometric)</option>
+                    <option value="ai">✨ 純 AI 生圖 (Full AI)</option>
+                    <option value="hybrid" selected>🌓 混合模式 (Hybrid)</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-3">
+                <label class="text-[10px] font-bold text-emerald-400 uppercase w-20">自定義風格</label>
+                <input type="text" id="ppt-style" class="bg-slate-800 text-white text-xs p-2 rounded-lg outline-none w-full" placeholder="例如：極簡北歐風、賽博龐克、水墨質感...">
+            </div>
         </div>
-
-        <button onclick="clearFile()" class="text-slate-500 hover:text-white px-2 ml-auto transition-colors">✕</button>
-
     </div>
 
-
-
     <footer class="p-3 bg-[#0f172a] border-t border-emerald-900/30 pb-8 md:pb-4 shadow-2xl">
-
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
-
             <input type="file" id="file-upload" class="hidden" accept="image/*">
-
-            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 transition-all border border-white/5 active:scale-95">
-
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-
+            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 active:scale-95 transition-all">
+                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             </button>
-
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white outline-none focus:border-emerald-500/50 transition-all text-sm" placeholder="輸入訊息...">
-
-            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-all uppercase italic disabled:opacity-50">Send</button>
-
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-500/50" placeholder="輸入訊息...">
+            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black uppercase italic active:scale-95 shadow-lg transition-all">Send</button>
         </div>
-
     </footer>
 
-
-
     <script>
-
-        // ✅ 網址已配置
-
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-
-
-
-        const chatWindow = document.getElementById('chat-window'),
-
-              input = document.getElementById('user-input'),
-
-              btn = document.getElementById('send-btn'),
-
-              fileStatus = document.getElementById('file-status'),
-
-              scanner = document.getElementById('image-scanner'),
-
-              modeSelect = document.getElementById('mode-select'),
-
-              sessId = "CLIP_" + Math.random().toString(36).substr(2, 6).toUpperCase();
-
-        
-
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptSettings = document.getElementById('ppt-settings'), sessId = "CLIP_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         let activeFile = null;
 
-
-
         function updateModeUI() {
-
             const m = modeSelect.value;
-
-            const themes = { chat: "bg-emerald-600", search: "bg-blue-600", drawing: "bg-pink-600", presentation: "bg-orange-600" };
-
-            btn.className = `${themes[m]} text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all shadow-lg disabled:opacity-50 uppercase italic`;
-
+            const themes = { chat: "bg-emerald-600", search: "bg-blue-600", drawing: "bg-pink-600", presentation: "bg-orange-600", calendar: "bg-fuchsia-600" };
+            btn.className = `${themes[m]} text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all shadow-lg uppercase italic`;
+            m === 'presentation' ? pptSettings.classList.add('show') : pptSettings.classList.remove('show');
         }
-
         updateModeUI();
 
-
-
-        document.getElementById('file-upload').onchange = async (e) => {
-
-            if(e.target.files[0]) {
-
-                setLoading(true, "Optimizing...");
-
-                activeFile = await compressImage(e.target.files[0]);
-
-                fileStatus.classList.remove('hidden');
-
-                document.getElementById('filename-display').innerText = activeFile.name;
-
-                setLoading(false);
-
-            }
-
-        };
-
-
-
         async function handleSend() {
-
             const text = input.value.trim();
-
-            if((!text && !activeFile) || btn.disabled) return;
-
-
-
+            if(!text && !activeFile) return;
             addMessage('user', text);
-
-            const payload = { message: text, session_id: sessId, mode: modeSelect.value };
-
             input.value = '';
-
             
-
+            const payload = { 
+                message: text, session_id: sessId, mode: modeSelect.value,
+                options: {
+                    strategy: document.getElementById('ppt-strategy').value,
+                    style: document.getElementById('ppt-style').value
+                }
+            };
+            
             if(activeFile) {
-
-                scanner.classList.remove('hidden');
-
                 payload.file_data = (await toBase64(activeFile)).split(',')[1];
-
                 payload.mime_type = activeFile.type;
-
-                clearFile();
-
+                activeFile = null;
             }
-
-
 
             setLoading(true, "Transmitting...");
-
-
-
             try {
-
-                const res = await fetch(GAS_URL, { 
-
-                    method: 'POST', 
-
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-
-                    body: JSON.stringify(payload),
-
-                    redirect: 'follow' 
-
-                });
-
-
-
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const data = await res.json();
-
                 if(data.status === "success") {
-
-                    addMessage('ai', data.reply, { model: data.model, cached: data.cached, image: data.image, mime: data.mime });
-
-                } else {
-
-                    addMessage('ai', "🚨 伺服器回報: " + data.error);
-
-                }
-
-            } catch (e) {
-
-                addMessage('ai', "❌ 連線失敗：請確認 GAS 部署是否設為「所有人」且後端已手動執行授權。");
-
-            } finally {
-
-                setLoading(false);
-
-                scanner.classList.add('hidden');
-
-            }
-
+                    addMessage('ai', data.reply, { model: data.model, image: data.image, mime: data.mime });
+                } else { addMessage('ai', "🚨 伺服器回報: " + data.error); }
+            } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
         }
-
-
-
-        // 💬 訊息渲染 (新增複製按鈕功能)
 
         function addMessage(role, text, meta = null) {
-
             const wrapper = document.createElement('div');
-
-            wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in group`;
-
-            
-
+            wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in mb-6 group`;
             const msgBox = document.createElement('div');
-
             msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-2xl relative`;
-
-
-
-            // 1. 處理圖片
-
             if(meta && meta.image) {
-
                 const img = document.createElement('img');
-
                 img.src = `data:${meta.mime || 'image/png'};base64,${meta.image}`;
-
-                img.className = "w-full rounded-lg mb-3 shadow-lg border border-white/10";
-
+                img.className = "w-full rounded-lg mb-3 shadow-lg";
                 msgBox.appendChild(img);
-
             }
-
-
-
-            // 2. 處理文字
-
-            const safeText = (text && text !== "undefined") ? text : (meta && meta.image ? "🎨 *已完成生圖*" : "");
-
-            if (safeText) {
-
+            if (text) {
                 const tNode = document.createElement('div');
-
-                tNode.innerHTML = marked.parse(safeText);
-
+                tNode.innerHTML = marked.parse(text);
                 msgBox.appendChild(tNode);
-
-
-
-                // ✨ v20.4 新增：一鍵複製按鈕 (僅限 AI 回覆)
-
                 if (role === 'ai') {
-
-                    const copyBar = document.createElement('div');
-
-                    copyBar.className = "mt-4 pt-2 border-t border-white/5 flex justify-end";
-
-                    
-
                     const copyBtn = document.createElement('button');
-
-                    copyBtn.className = "text-[10px] bg-slate-700/50 hover:bg-emerald-600 text-slate-400 hover:text-white px-3 py-1 rounded-lg transition-all flex items-center gap-1 uppercase font-bold tracking-tighter";
-
-                    copyBtn.innerHTML = `
-
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3" />
-
-                        </svg> Copy Text
-
-                    `;
-
-                    
-
-                    copyBtn.onclick = () => {
-
-                        navigator.clipboard.writeText(safeText).then(() => {
-
-                            const originalHTML = copyBtn.innerHTML;
-
-                            copyBtn.innerHTML = "✅ Copied!";
-
-                            copyBtn.classList.add('copy-btn-active');
-
-                            setTimeout(() => {
-
-                                copyBtn.innerHTML = originalHTML;
-
-                                copyBtn.classList.remove('copy-btn-active');
-
-                            }, 2000);
-
-                        });
-
-                    };
-
-                    copyBar.appendChild(copyBtn);
-
-                    msgBox.appendChild(copyBar);
-
+                    copyBtn.className = "mt-4 text-[10px] bg-slate-700/50 hover:bg-emerald-600 text-slate-400 px-3 py-1 rounded-lg font-bold uppercase";
+                    copyBtn.innerText = "📋 Copy Text";
+                    copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.innerText = "✅ Copied!"; setTimeout(()=>copyBtn.innerText="📋 Copy Text", 2000); };
+                    msgBox.appendChild(copyBtn);
                 }
-
             }
-
-
-
-            // 3. 模型標籤
-
-            if(meta) {
-
-                const i = document.createElement('div');
-
-                i.className = "mt-2 opacity-30 text-[8px] font-mono italic flex justify-between";
-
-                i.innerHTML = `<span>NODE: ${meta.model}</span> <span>${meta.cached ? '[L2-CACHE]' : ''}</span>`;
-
-                msgBox.appendChild(i);
-
-            }
-
-
-
-            wrapper.appendChild(msgBox);
-
-            chatWindow.appendChild(wrapper);
-
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-
-            if (window.hljs) hljs.highlightAll();
-
+            chatWindow.appendChild(wrapper); wrapper.appendChild(msgBox); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-
-
-        // 🛠️ 輔助函式 (保持不變)
-
-        function setLoading(l, t) {
-
-            btn.disabled = l;
-
-            if(l){
-
-                const d = document.createElement('div');
-
-                d.id = 'loader';
-
-                d.className = 'text-emerald-500 text-[10px] font-black animate-pulse mt-2 px-2';
-
-                d.innerHTML = `⚡ ${t.toUpperCase()}`;
-
-                chatWindow.appendChild(d);
-
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-
-            } else {
-
-                const e = document.getElementById('loader');
-
-                if(e) e.remove();
-
-            }
-
-        }
-
+        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] font-black animate-pulse mt-2 px-2'; d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); } else { document.getElementById('loader')?.remove(); } }
         function toBase64(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); }); }
-
-        function clearFile() { activeFile = null; fileStatus.classList.add('hidden'); scanner.classList.add('hidden'); }
-
-        function compressImage(f) { 
-
-            return new Promise(r => { 
-
-                const i = new Image(); i.src = URL.createObjectURL(f); 
-
-                i.onload = () => { 
-
-                    const c = document.createElement('canvas'), MAX = 1200; 
-
-                    let w = i.width, h = i.height; 
-
-                    if(w > h && w > MAX) { h *= MAX/w; w = MAX; } else if(h > MAX) { w *= MAX/h; h = MAX; } 
-
-                    c.width = w; c.height = h; 
-
-                    c.getContext('2d').drawImage(i, 0, 0, w, h); 
-
-                    c.toBlob(b => r(new File([b], f.name, {type: "image/jpeg"})), 'image/jpeg', 0.85); 
-
-                }; 
-
-            }); 
-
-        }
-
+        document.getElementById('file-upload').onchange = (e) => { if(e.target.files[0]) activeFile = e.target.files[0]; };
     </script>
-
 </body>
-
 </html>
