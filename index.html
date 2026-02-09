@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v37.5 : Memory Master</title>
+    <title>anyGem v37.6 : Stable Architect</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -23,14 +23,14 @@
     <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex flex-col z-40 shrink-0">
         <div class="flex justify-between items-center">
             <div class="flex flex-col">
-                <span class="text-lg font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v37.5</span></span>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Architecture Complete</span>
+                <span class="text-lg font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v37.6</span></span>
+                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Architecture Stable</span>
             </div>
-            <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold">
+            <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold cursor-pointer">
                 <option value="chat">💬 高速對話</option>
                 <option value="art">🎨 藝術生圖</option>
                 <option value="report">📑 深度研報</option>
-                <option value="presentation">📊 智能簡報</option>
+                <option value="presentation" selected>📊 智能簡報</option>
                 <option value="calendar">📅 日曆管家</option>
             </select>
         </div>
@@ -54,8 +54,8 @@
                 </select>
             </div>
             <div id="custom-style-wrap" class="flex flex-col gap-1 hidden">
-                <label class="text-emerald-400 font-bold text-[10px]">風格描述</label>
-                <input type="text" id="ppt-custom-style" class="bg-slate-800 text-white rounded p-1 border border-white/10 outline-none" placeholder="例: 簡約大氣...">
+                <label class="text-emerald-400 font-bold text-[10px]">自定義描述</label>
+                <input type="text" id="ppt-custom-style" class="bg-slate-800 text-white rounded p-1 border border-white/10 outline-none" placeholder="描述你的風格...">
             </div>
         </div>
     </header>
@@ -64,7 +64,7 @@
 
     <div id="zen-editor" class="fixed inset-0 bg-[#0f172a]/95 backdrop-blur-xl flex flex-col p-6">
         <div class="flex justify-between items-center mb-4">
-            <span class="text-emerald-400 font-black text-xs uppercase tracking-widest">Zen Editor</span>
+            <span class="text-emerald-400 font-black text-xs uppercase tracking-widest">Zen Mode Writer</span>
             <button onclick="closeZenMode()" class="bg-emerald-600 text-white px-8 py-2 rounded-full text-xs font-bold shadow-lg">Apply & Close</button>
         </div>
         <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-xl outline-none resize-none font-serif leading-relaxed"></textarea>
@@ -79,8 +79,8 @@
             <button onclick="openZenMode()" class="bg-slate-800 p-4 rounded-2xl border border-white/5 active:scale-95 shrink-0 transition-all">
                 <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
             </button>
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none" placeholder="輸入內容或指令...">
-            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg uppercase active:scale-95 transition-all">Send</button>
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none" placeholder="輸入訊息...">
+            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg uppercase italic active:scale-95 transition-all">Send</button>
         </div>
     </footer>
 
@@ -107,7 +107,7 @@
         document.getElementById('file-upload').onchange = (e) => {
             const file = e.target.files[0];
             const reader = new FileReader();
-            reader.onload = (evt) => { activeFile.base64 = evt.target.result.split(',')[1]; activeFile.mime = file.type; input.value = `[已選取檔案: ${file.name}]`; };
+            reader.onload = (evt) => { activeFile.base64 = evt.target.result.split(',')[1]; activeFile.mime = file.type; input.value = `[已附加檔案: ${file.name}]`; };
             reader.readAsDataURL(file);
         };
 
@@ -144,7 +144,7 @@
         function renderArtCard(base64, prompt) {
             const w = document.createElement('div'); w.className = "flex justify-start animate-fade-in mb-6 group";
             const m = document.createElement('div'); m.className = "max-w-[85%] p-2 rounded-3xl bg-[#1e293b] border border-pink-500/20 shadow-2xl overflow-hidden";
-            m.innerHTML = `<img src="data:image/png;base64,${base64}" class="w-full rounded-2xl mb-2"><div class="px-3 pb-2"><p class="text-[10px] text-pink-400 font-bold mb-1">ART GENERATED</p><p class="text-xs text-slate-400 italic">${prompt}</p><a href="data:image/png;base64,${base64}" download="anyGem_Art.png" class="mt-3 block text-center bg-pink-600/20 hover:bg-pink-600 text-pink-400 hover:text-white text-[10px] font-bold py-2 rounded-xl transition-all">Download PNG</a></div>`;
+            m.innerHTML = `<img src="data:image/png;base64,${base64}" class="w-full rounded-2xl mb-2"><div class="px-3 pb-2"><p class="text-[10px] text-pink-400 font-bold mb-1 uppercase">Art Result</p><p class="text-xs text-slate-400 italic">${prompt}</p><a href="data:image/png;base64,${base64}" download="anyGem_Art.png" class="mt-3 block text-center bg-pink-600/20 hover:bg-pink-600 text-pink-400 hover:text-white text-[10px] font-bold py-2 rounded-xl transition-all uppercase tracking-widest">Download</a></div>`;
             chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
