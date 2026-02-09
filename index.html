@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v37.1 : Master Architect</title>
+    <title>anyGem v37.2 : Perfect Integration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -20,6 +20,9 @@
         /* 📊 簡報設定區動畫 */
         #ppt-settings { transition: all 0.4s ease; max-height: 0; opacity: 0; overflow: hidden; }
         #ppt-settings.open { max-height: 500px; opacity: 1; padding: 1rem; border-width: 1px; margin-top: 0.75rem; }
+
+        /* ✨ 複製按鈕提示動畫 */
+        .copy-btn:active { transform: scale(0.9); }
     </style>
 </head>
 <body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden relative">
@@ -27,15 +30,15 @@
     <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex flex-col z-40 shrink-0">
         <div class="flex justify-between items-center">
             <div class="flex flex-col">
-                <span class="text-lg font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500">v37.1</span></span>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-widest">MASTER ARCHITECT</span>
+                <span class="text-lg font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500">v37.2</span></span>
+                <span class="text-[8px] text-emerald-400 font-mono tracking-widest">PERFECT INTEGRATION</span>
             </div>
             <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold cursor-pointer">
                 <option value="chat">💬 高速對話</option>
                 <option value="report">📑 深度研報</option>
                 <option value="art">🎨 藝術生圖</option>
                 <option value="calendar">📅 日曆管家</option>
-                <option value="presentation" selected>📊 智能簡報</option>
+                <option value="presentation">📊 智能簡報</option>
             </select>
         </div>
         
@@ -69,7 +72,7 @@
     <div id="zen-editor" class="fixed inset-0 bg-[#0f172a]/95 backdrop-blur-xl flex flex-col p-6">
         <div class="flex justify-between items-center mb-4">
             <span class="text-emerald-400 font-black text-xs tracking-widest uppercase">Zen Editor</span>
-            <button onclick="closeZenMode()" class="bg-emerald-600 text-white px-8 py-2 rounded-full text-xs font-bold shadow-lg active:scale-95 transition-all">Apply & Close</button>
+            <button onclick="closeZenMode()" class="bg-emerald-600 text-white px-8 py-2 rounded-full text-xs font-bold shadow-lg">Apply & Close</button>
         </div>
         <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-xl outline-none resize-none font-serif leading-relaxed" placeholder="在這裡盡情修改長文..."></textarea>
     </div>
@@ -99,16 +102,11 @@
             const m = modeSelect.value;
             const themes = { chat: "bg-emerald-600", report: "bg-blue-600", art: "bg-pink-600", calendar: "bg-fuchsia-600", presentation: "bg-orange-600" };
             btn.className = `${themes[m]} text-white px-6 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase italic`;
-            
-            if (m === 'presentation') {
-                pptSettings.classList.add('open');
-                document.getElementById('ppt-theme').onchange = (e) => {
-                    const wrap = document.getElementById('custom-style-wrap');
-                    e.target.value === 'Custom' ? wrap.classList.remove('hidden') : wrap.classList.add('hidden');
-                };
-            } else {
-                pptSettings.classList.remove('open');
-            }
+            m === 'presentation' ? pptSettings.classList.add('open') : pptSettings.classList.remove('open');
+            document.getElementById('ppt-theme').onchange = (e) => {
+                const wrap = document.getElementById('custom-style-wrap');
+                e.target.value === 'Custom' ? wrap.classList.remove('hidden') : wrap.classList.add('hidden');
+            };
         }
 
         function openZenMode() { zenInput.value = input.value; zenEditor.classList.add('active'); zenInput.focus(); }
@@ -144,13 +142,7 @@
             try {
                 const res = await fetch(GAS_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify({ 
-                        message: text, 
-                        mode: modeSelect.value, 
-                        imageBase64: activeFile.base64, 
-                        mimeType: activeFile.mime, 
-                        options: extra 
-                    }) 
+                    body: JSON.stringify({ message: text, mode: modeSelect.value, imageBase64: activeFile.base64, mimeType: activeFile.mime, options: extra }) 
                 });
                 const data = await res.json();
                 activeFile = { base64: null, mime: null };
@@ -159,18 +151,40 @@
                 } else {
                     addMessage('ai', "🚨 Error: " + data.error);
                 }
-            } catch (e) { 
-                addMessage('ai', "❌ 連線失敗，請檢查後端部署。"); 
-            } finally { 
-                setLoading(false); 
-            }
+            } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
         }
 
         function addMessage(role, text, meta = null) {
-            const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in mb-5`;
-            const m = document.createElement('div'); m.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} prose prose-invert prose-sm shadow-xl`;
-            if(meta && meta.docUrl) m.innerHTML = `<a href="${meta.docUrl}" target="_blank" class="block bg-indigo-600 p-3 rounded-xl mb-3 font-bold text-center shadow-lg active:scale-95 transition-all">📂 開啟產出文件 / 簡報</a>`;
-            m.innerHTML += marked.parse(text || "");
+            const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in mb-6 group`;
+            const m = document.createElement('div'); m.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} shadow-xl relative`;
+            
+            if(meta && meta.docUrl) m.innerHTML = `<a href="${meta.docUrl}" target="_blank" class="block bg-indigo-600 p-3 rounded-xl mb-3 font-bold text-center shadow-lg active:scale-95 transition-all">📂 開啟文件 / 簡報</a>`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = "prose prose-invert prose-sm";
+            contentDiv.innerHTML = marked.parse(text || "");
+            m.appendChild(contentDiv);
+
+            // ✨ 重新加入複製按鈕 (僅 AI 訊息)
+            if (role === 'ai' && text) {
+                const copyBtn = document.createElement('button');
+                copyBtn.className = "copy-btn mt-3 text-[10px] bg-white/5 hover:bg-emerald-600/40 text-slate-400 hover:text-white px-3 py-1 rounded-lg font-bold uppercase tracking-tighter transition-all opacity-0 group-hover:opacity-100";
+                copyBtn.innerText = "📋 Copy Text";
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(text);
+                    copyBtn.innerText = "✅ Copied!";
+                    setTimeout(() => copyBtn.innerText = "📋 Copy Text", 2000);
+                };
+                m.appendChild(copyBtn);
+            }
+
+            if(meta && meta.model) {
+                const nodeInfo = document.createElement('div');
+                nodeInfo.className = "mt-2 opacity-20 text-[7px] font-mono italic";
+                nodeInfo.innerText = `NODE: ${meta.model}`;
+                m.appendChild(nodeInfo);
+            }
+
             w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
@@ -178,11 +192,8 @@
             btn.disabled = l; 
             if(l){ 
                 const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] font-black animate-pulse p-4'; 
-                d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); 
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-            } else { 
-                document.getElementById('loader')?.remove(); 
-            } 
+                d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight;
+            } else { document.getElementById('loader')?.remove(); } 
         }
         updateModeUI();
     </script>
