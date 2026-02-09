@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v38.1 : Phoenix Rise</title>
+    <title>anyGem v38.2 : Robust Architect</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -23,10 +23,10 @@
     <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex flex-col z-40 shrink-0">
         <div class="flex justify-between items-center">
             <div class="flex flex-col">
-                <span class="text-lg font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v38.1</span></span>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Layout Fixed & Art Revived</span>
+                <span class="text-lg font-black text-white italic tracking-tighter">anyGem <span class="text-emerald-500 text-sm">v38.2</span></span>
+                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Robust Connectivity</span>
             </div>
-            <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold cursor-pointer">
+            <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold">
                 <option value="chat">💬 高速對話</option>
                 <option value="art">🎨 藝術生圖</option>
                 <option value="report">📑 深度研報</option>
@@ -34,28 +34,14 @@
                 <option value="calendar">📅 日曆管家</option>
             </select>
         </div>
-        
         <div id="ppt-settings" class="bg-emerald-900/10 border-emerald-500/20 rounded-xl grid grid-cols-2 md:grid-cols-3 gap-4 text-xs">
             <div class="flex flex-col gap-1">
                 <label class="text-emerald-400 font-bold text-[10px]">生成類別</label>
-                <select id="ppt-strategy" class="bg-slate-800 text-white rounded p-1 outline-none">
-                    <option value="native">🌿 原生設計</option>
-                    <option value="ai_art">✨ AI 全背景</option>
-                    <option value="hybrid" selected>🌓 混合模式</option>
-                </select>
+                <select id="ppt-strategy" class="bg-slate-800 text-white rounded p-1"><option value="hybrid">🌓 混合模式</option><option value="native">🌿 原生設計</option><option value="ai_art">✨ AI 全背景</option></select>
             </div>
             <div class="flex flex-col gap-1">
                 <label class="text-emerald-400 font-bold text-[10px]">風格選項</label>
-                <select id="ppt-theme" class="bg-slate-800 text-white rounded p-1 outline-none">
-                    <option value="Professional">專業商務</option>
-                    <option value="Cyberpunk">賽博龐克</option>
-                    <option value="Warm">溫暖人文</option>
-                    <option value="Custom">🖍️ 自定義...</option>
-                </select>
-            </div>
-            <div id="custom-style-wrap" class="flex flex-col gap-1 hidden">
-                <label class="text-emerald-400 font-bold text-[10px]">風格描述</label>
-                <input type="text" id="ppt-custom-style" class="bg-slate-800 text-white rounded p-1 border border-white/10 outline-none" placeholder="描述風格...">
+                <select id="ppt-theme" class="bg-slate-800 text-white rounded p-1"><option value="Professional">專業商務</option><option value="Cyberpunk">賽博龐克</option><option value="Warm">溫暖人文</option></select>
             </div>
         </div>
     </header>
@@ -64,32 +50,24 @@
 
     <div id="zen-editor" class="fixed inset-0 bg-[#0f172a]/98 backdrop-blur-xl flex flex-col p-6">
         <div class="flex justify-between items-center mb-4">
-            <span class="text-emerald-400 font-black text-xs tracking-widest uppercase">Zen Mode</span>
-            <button onclick="closeZenMode()" class="bg-emerald-600 text-white px-8 py-2 rounded-full text-xs font-bold shadow-lg">Apply & Close</button>
+            <span class="text-emerald-400 font-black text-xs uppercase tracking-widest">Zen Mode</span>
+            <button onclick="closeZenMode()" class="bg-emerald-600 text-white px-8 py-2 rounded-full text-xs font-bold shadow-lg">Done</button>
         </div>
-        <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-xl outline-none resize-none font-serif leading-relaxed" placeholder="編輯長文..."></textarea>
+        <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-xl outline-none resize-none font-serif leading-relaxed"></textarea>
     </div>
 
     <footer class="p-4 bg-[#0f172a] border-t border-emerald-900/30 z-40 shrink-0">
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
             <input type="file" id="file-upload" class="hidden" accept="image/*">
-            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 border border-white/5 active:scale-95 shrink-0 transition-all">
-                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-            </button>
-            <button onclick="openZenMode()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 border border-white/5 active:scale-95 shrink-0 transition-all">
-                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            </button>
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-500/50" placeholder="輸入指令...">
-            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg uppercase italic active:scale-95 transition-all">Send</button>
+            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl shrink-0 transition-all border border-white/5"><svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg></button>
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none" placeholder="輸入指令...">
+            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black uppercase active:scale-95 transition-all shadow-lg">Send</button>
         </div>
     </footer>
 
     <script>
-        // ✅ 請更換為您的實際 GAS URL
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        
         const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptSettings = document.getElementById('ppt-settings'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input');
-        
         let chatHistory = [];
         let activeFile = { base64: null, mime: null };
 
@@ -98,9 +76,6 @@
             const themes = { chat: "bg-emerald-600", art: "bg-pink-600", report: "bg-blue-600", presentation: "bg-orange-600", calendar: "bg-fuchsia-600" };
             btn.className = `${themes[m] || "bg-emerald-600"} text-white px-6 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase italic`;
             m === 'presentation' ? pptSettings.classList.add('open') : pptSettings.classList.remove('open');
-            document.getElementById('ppt-theme').onchange = (e) => {
-                document.getElementById('custom-style-wrap').classList.toggle('hidden', e.target.value !== 'Custom');
-            };
         }
 
         function openZenMode() { zenInput.value = input.value; zenEditor.classList.add('active'); zenInput.focus(); }
@@ -116,52 +91,61 @@
         async function handleSend() {
             const text = input.value.trim();
             if(!text && !activeFile.base64) return;
-            addMessage('user', text); input.value = ''; zenInput.value = '';
             
+            addMessage('user', text);
+            input.value = '';
             const m = modeSelect.value;
-            setLoading(true, m === 'art' ? "Creating Art..." : "AI Processing...");
-            
-            let extra = null;
-            if(m === 'presentation') {
-                extra = { strategy: document.getElementById('ppt-strategy').value, theme: document.getElementById('ppt-theme').value, customStyle: document.getElementById('ppt-custom-style').value };
-            }
+            setLoading(true, m === 'art' ? "Creating Art..." : "AI Thinking...");
 
             try {
-                const response = await fetch(GAS_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ 
-                        message: text, 
-                        mode: m, 
-                        history: chatHistory.slice(-6), 
-                        imageBase64: activeFile.base64, 
-                        mimeType: activeFile.mime, 
-                        options: extra 
-                    }) 
+                // ✨ 修正請求參數
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify({
+                        message: text,
+                        mode: m,
+                        history: chatHistory.slice(-6),
+                        imageBase64: activeFile.base64,
+                        mimeType: activeFile.mime,
+                        options: m === 'presentation' ? { strategy: document.getElementById('ppt-strategy').value, theme: document.getElementById('ppt-theme').value } : null
+                    })
                 });
-                const data = await response.json();
+
+                // ✨ 強化 JSON 解析錯誤處理
+                const textData = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(textData);
+                } catch (e) {
+                    console.error("JSON Parse Error. Raw response:", textData);
+                    throw new Error("後端回傳格式錯誤，請檢查 GAS 部署是否正確。");
+                }
+
                 activeFile = { base64: null, mime: null };
-                
+
                 if(data.status === "success") {
                     if(data.type === 'art' || data.image) {
                         renderArtCard(data.image, data.reply || text);
                     } else {
-                        addMessage('ai', data.reply, { docUrl: data.docUrl, model: data.model });
+                        addMessage('ai', data.reply, { docUrl: data.docUrl });
                         chatHistory.push({ role: 'user', content: text }, { role: 'model', content: data.reply });
                     }
                 } else {
-                    addMessage('ai', "🚨 系統錯誤: " + data.error);
+                    addMessage('ai', "🚨 系統訊息: " + (data.error || "未知錯誤"));
                 }
             } catch (e) {
-                addMessage('ai', "❌ 連線失敗，請檢查 GAS 部署是否設為「任何人」。");
+                console.error("Fetch/Processing Error:", e);
+                addMessage('ai', "❌ " + e.message);
             } finally {
-                setLoading(false);
+                setLoading(false); // ✨ 確保讀取條一定會關閉
             }
         }
 
         function renderArtCard(base64, prompt) {
-            const w = document.createElement('div'); w.className = "flex justify-start animate-fade-in mb-6 group";
-            const m = document.createElement('div'); m.className = "max-w-[85%] p-2 rounded-3xl bg-[#1e293b] border border-pink-500/20 shadow-2xl overflow-hidden";
-            m.innerHTML = `<img src="data:image/png;base64,${base64}" class="w-full rounded-2xl mb-2"><div class="px-3 pb-2"><p class="text-[10px] text-pink-400 font-bold mb-1 uppercase">Art Result</p><p class="text-xs text-slate-400 italic leading-tight mb-3">${prompt}</p><a href="data:image/png;base64,${base64}" download="Art.png" class="block text-center bg-pink-600 hover:bg-pink-500 text-white text-[10px] font-bold py-2 rounded-xl transition-all shadow-lg">Download PNG</a></div>`;
+            const w = document.createElement('div'); w.className = "flex justify-start animate-fade-in mb-6";
+            const m = document.createElement('div'); m.className = "max-w-[85%] p-2 rounded-3xl bg-[#1e293b] border border-pink-500/20 shadow-2xl";
+            m.innerHTML = `<img src="data:image/png;base64,${base64}" class="w-full rounded-2xl mb-2"><div class="px-3 pb-2"><p class="text-[10px] text-pink-400 font-bold mb-1 uppercase">Art Result</p><p class="text-xs text-slate-400 italic">${prompt}</p></div>`;
             chatWindow.appendChild(w);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
@@ -169,21 +153,12 @@
         function addMessage(role, text, meta = null) {
             const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in mb-6 group`;
             const m = document.createElement('div'); m.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} shadow-xl relative`;
-            if(meta && meta.docUrl) m.innerHTML = `<a href="${meta.docUrl}" target="_blank" class="block bg-indigo-600 p-3 rounded-xl mb-3 font-bold text-center shadow-lg active:scale-95 transition-all italic">📂 開啟生成文件 / 簡報</a>`;
+            if(meta && meta.docUrl) m.innerHTML = `<a href="${meta.docUrl}" target="_blank" class="block bg-indigo-600 p-2 rounded-lg mb-2 text-center font-bold">📂 開啟簡報/文件</a>`;
             const contentDiv = document.createElement('div'); contentDiv.className = "prose prose-invert prose-sm"; contentDiv.innerHTML = marked.parse(text || ""); m.appendChild(contentDiv);
-            if (role === 'ai') {
-                const copyBtn = document.createElement('button');
-                copyBtn.className = "mt-3 text-[10px] bg-white/5 hover:bg-emerald-600/40 text-slate-400 hover:text-white px-3 py-1 rounded-lg font-bold transition-all opacity-0 group-hover:opacity-100";
-                copyBtn.innerText = "📋 Copy";
-                copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.innerText = "✅ Copied!"; setTimeout(() => copyBtn.innerText = "📋 Copy", 2000); };
-                m.appendChild(copyBtn);
-            }
             chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
         function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] font-black animate-pulse p-4'; d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { document.getElementById('loader')?.remove(); } }
-        
-        // 初始 UI 設定
         updateModeUI();
     </script>
 </body>
