@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v40.0 : Ultimate Architect</title>
+    <title>anyGem v41.0 : Semantic Memory</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -20,13 +20,13 @@
     <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex flex-col z-50 shadow-2xl">
         <div class="flex justify-between items-center">
             <div class="flex flex-col">
-                <span class="text-lg font-black text-white italic tracking-tighter uppercase">anyGem <span class="text-emerald-500 text-sm">v40.0</span></span>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Multimodal & Smart Design</span>
+                <span class="text-lg font-black text-white italic tracking-tighter uppercase">anyGem <span class="text-emerald-500 text-sm">v41.0</span></span>
+                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Long-term Memory & Multimodal</span>
             </div>
             <select id="mode-select" onchange="updateUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 font-bold outline-none cursor-pointer">
-                <option value="chat">💬 高速對話</option>
+                <option value="chat">💬 智能助理 (帶記憶)</option>
                 <option value="search">🌍 深度研究</option>
-                <option value="drawing">🎨 藝術生圖 (高精度)</option>
+                <option value="drawing">🎨 藝術生圖</option>
                 <option value="presentation">📊 智能簡報</option>
                 <option value="calendar">📅 日曆管家</option>
             </select>
@@ -38,7 +38,7 @@
                 <option value="native">2. 原生模式 (純 Google 簡報版型)</option>
                 <option value="ai">3. AI 模式 (全頁 AI 生圖設計)</option>
             </select>
-            <input type="text" id="ppt-style" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full outline-none" placeholder="自定義簡報風格 (例如：莫蘭迪色、科技感...)">
+            <input type="text" id="ppt-style" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full outline-none" placeholder="自定義簡報風格 (例如：科技感、莫蘭迪色...)">
         </div>
     </header>
 
@@ -49,7 +49,7 @@
             <div id="file-thumb" class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-xl shadow-lg"></div>
             <div class="flex flex-col">
                 <span id="file-name-label" class="text-xs font-bold text-white truncate max-w-[200px]">檔案載入中...</span>
-                <span class="text-[9px] text-emerald-400 font-mono tracking-widest">READY TO PROCESS</span>
+                <span class="text-[9px] text-emerald-400 font-mono tracking-widest">FILE READY</span>
             </div>
         </div>
         <button onclick="clearFile()" class="p-2 text-slate-500 hover:text-white transition-colors">✕</button>
@@ -59,16 +59,27 @@
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
             <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx">
             <button onclick="document.getElementById('file-input').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 active:scale-95 transition-all">
-                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8m4-4v12" /></svg>
             </button>
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white text-sm outline-none" placeholder="輸入指令或上傳檔案...">
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white text-sm outline-none" placeholder="輸入訊息，AI 會記住重要內容...">
             <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black uppercase italic shadow-lg active:scale-95 transition-all">Send</button>
         </div>
     </footer>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptPanel = document.getElementById('ppt-config-panel'), previewBar = document.getElementById('file-preview-bar'), sessId = "SESS_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const GAS_URL = "你的_GAS_網址";
+
+        // ✨ 固化使用者 ID (長期記憶核心)
+        const sessId = (function() {
+            let id = localStorage.getItem('ANYGEM_USER_ID');
+            if (!id) {
+                id = "UID_" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem('ANYGEM_USER_ID', id);
+            }
+            return id;
+        })();
+
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptPanel = document.getElementById('ppt-config-panel'), previewBar = document.getElementById('file-preview-bar');
         
         let activeFile = null;
 
@@ -79,10 +90,8 @@
         document.getElementById('file-input').onchange = async (e) => {
             const file = e.target.files[0];
             if(!file) return;
-
             setLoading(true, "Optimizing...");
             activeFile = file.type.startsWith('image/') ? await compressImage(file) : file;
-            
             previewBar.classList.remove('hidden');
             document.getElementById('file-name-label').innerText = file.name;
             const thumb = document.getElementById('file-thumb');
@@ -160,7 +169,6 @@
         }
 
         function toBase64(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); }); }
-        
         function compressImage(f) {
             return new Promise(resolve => {
                 const img = new Image(); img.src = URL.createObjectURL(f);
@@ -174,7 +182,6 @@
                 };
             });
         }
-
         function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] font-black animate-pulse p-2'; d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { document.getElementById('loader')?.remove(); } }
         updateUI();
     </script>
