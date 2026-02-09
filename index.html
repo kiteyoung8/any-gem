@@ -1,74 +1,43 @@
-<header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex flex-col z-40">
-    <div class="flex justify-between items-center">
-        <div class="flex flex-col">
-            <span class="text-lg font-black text-white italic">anyGem <span class="text-emerald-500">v37.0</span></span>
-            <span class="text-[8px] text-emerald-400 font-mono tracking-widest">SLIDE ARCHITECT</span>
-        </div>
-        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold">
-            <option value="chat">💬 高速對話</option>
-            <option value="report">📑 深度研報</option>
-            <option value="art">🎨 藝術生圖</option>
-            <option value="calendar">📅 日曆管家</option>
-            <option value="presentation">📊 智能簡報</option>
-        </select>
-    </div>
-    
-    <div id="ppt-settings" class="bg-emerald-900/10 border-emerald-500/20 rounded-xl grid grid-cols-2 md:grid-cols-3 gap-4 text-xs mt-3">
-        <div class="flex flex-col gap-1">
-            <label class="text-emerald-400 font-bold text-[10px]">生成類別 (Strategy)</label>
-            <select id="ppt-strategy" class="bg-slate-800 text-white rounded p-1">
-                <option value="native">🌿 原生設計 (純工具生成)</option>
-                <option value="ai_art">✨ AI 生圖 (全背景渲染)</option>
-                <option value="hybrid" selected>🌓 混合模式 (生圖+原生)</option>
-            </select>
-        </div>
-        <div class="flex flex-col gap-1">
-            <label class="text-emerald-400 font-bold text-[10px]">風格選項 (Theme)</label>
-            <select id="ppt-theme" class="bg-slate-800 text-white rounded p-1">
-                <option value="Professional">專業商務</option>
-                <option value="Cyberpunk">賽博龐克</option>
-                <option value="Warm">溫暖人文</option>
-                <option value="Custom">🖍️ 自定義風格...</option>
-            </select>
-        </div>
-        <div id="custom-style-wrap" class="flex flex-col gap-1 hidden col-span-2 md:col-span-1">
-            <label class="text-emerald-400 font-bold text-[10px]">自定義描述</label>
-            <input type="text" id="ppt-custom-style" class="bg-slate-800 text-white rounded p-1 border border-white/10" placeholder="例如：極簡北歐風, 亮橘色調...">
-        </div>
-    </div>
-</header>
-
-<script>
-// 在 updateModeUI 中加入監聽
-function updateModeUI() {
-    const m = modeSelect.value;
-    const pptBox = document.getElementById('ppt-settings');
-    if (m === 'presentation') {
-        pptBox.classList.add('open');
-        // 監聽風格是否為自定義
-        document.getElementById('ppt-theme').onchange = (e) => {
-            const wrap = document.getElementById('custom-style-wrap');
-            e.target.value === 'Custom' ? wrap.classList.remove('hidden') : wrap.classList.add('hidden');
-        };
-    } else {
-        pptBox.classList.remove('open');
-    }
-}
-
-// 在 handleSend 中獲取新的參數
+/ 僅替換 handleSend 函式區塊 /
 async function handleSend() {
     const text = input.value.trim();
-    if(!text) return;
-
-    let extra = {};
+    if(!text && !activeFileBase64) return;
+    addMessage('user', text); input.value = '';
+    setLoading(true, "AI Processing...");
+    
+    // 獲取簡報專屬設定
+    let extra = null;
     if(modeSelect.value === 'presentation') {
+        const themeVal = document.getElementById('ppt-theme').value;
         extra = {
             strategy: document.getElementById('ppt-strategy').value,
-            theme: document.getElementById('ppt-theme').value,
-            customStyle: document.getElementById('ppt-custom-style').value
+            theme: themeVal,
+            customStyle: (themeVal === 'Custom') ? document.getElementById('ppt-custom-style').value : ""
         };
     }
-    
-    // ... 後續 fetch 保持與之前相同 ...
+
+    try {
+        const res = await fetch(GAS_URL, { 
+            method: 'POST', 
+            // 修正點: 確保 body 包含 options
+            body: JSON.stringify({ 
+                message: text, 
+                mode: modeSelect.value, 
+                imageBase64: activeFileBase64, 
+                mimeType: activeFileMime, 
+                options: extra 
+            }) 
+        });
+        const data = await res.json();
+        activeFileBase64 = null;
+        if(data.status === "success") {
+            addMessage('ai', data.reply, { docUrl: data.docUrl, model: data.model });
+        } else {
+            addMessage('ai', "🚨 Error: " + data.error);
+        }
+    } catch (e) { 
+        addMessage('ai', "❌ 連線失敗，請檢查後端日誌。"); 
+    } finally { 
+        setLoading(false); 
+    }
 }
-</script>
