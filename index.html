@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v41.0 : Semantic Memory</title>
+    <title>anyGem v42.0 : Semantic Memory Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -20,25 +20,23 @@
     <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex flex-col z-50 shadow-2xl">
         <div class="flex justify-between items-center">
             <div class="flex flex-col">
-                <span class="text-lg font-black text-white italic tracking-tighter uppercase">anyGem <span class="text-emerald-500 text-sm">v41.0</span></span>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Long-term Memory & Multimodal</span>
+                <span class="text-lg font-black text-white italic tracking-tighter uppercase">anyGem <span class="text-emerald-500 text-sm">v42.0</span></span>
+                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Persistent Memory & Multimodal</span>
             </div>
             <select id="mode-select" onchange="updateUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 font-bold outline-none cursor-pointer">
                 <option value="chat">💬 智能助理 (帶記憶)</option>
                 <option value="search">🌍 深度研究</option>
                 <option value="drawing">🎨 藝術生圖</option>
                 <option value="presentation">📊 智能簡報</option>
-                <option value="calendar">📅 日曆管家</option>
             </select>
         </div>
-
         <div id="ppt-config-panel" class="bg-emerald-900/10 rounded-2xl p-4 space-y-3">
-            <select id="ppt-strategy" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full outline-none">
-                <option value="hybrid" selected>1. 混合模式 (AI 背景 + 原生版面)</option>
-                <option value="native">2. 原生模式 (純 Google 簡報版型)</option>
-                <option value="ai">3. AI 模式 (全頁 AI 生圖設計)</option>
+            <select id="ppt-strategy" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full">
+                <option value="hybrid">1. 混合模式 (AI背景+原生)</option>
+                <option value="native">2. 原生模式 (幾何版型)</option>
+                <option value="ai">3. AI模式 (全頁生圖)</option>
             </select>
-            <input type="text" id="ppt-style" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full outline-none" placeholder="自定義簡報風格 (例如：科技感、莫蘭迪色...)">
+            <input type="text" id="ppt-style" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full" placeholder="風格關鍵字...">
         </div>
     </header>
 
@@ -46,11 +44,8 @@
 
     <div id="file-preview-bar" class="hidden px-4 py-3 bg-emerald-900/20 border-t border-emerald-500/30 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-            <div id="file-thumb" class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-xl shadow-lg"></div>
-            <div class="flex flex-col">
-                <span id="file-name-label" class="text-xs font-bold text-white truncate max-w-[200px]">檔案載入中...</span>
-                <span class="text-[9px] text-emerald-400 font-mono tracking-widest">FILE READY</span>
-            </div>
+            <div id="file-thumb" class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-xl shadow-lg border border-white/5">📄</div>
+            <span id="file-name-label" class="text-xs font-bold text-white truncate max-w-[200px]">檔案載入中...</span>
         </div>
         <button onclick="clearFile()" class="p-2 text-slate-500 hover:text-white transition-colors">✕</button>
     </div>
@@ -59,9 +54,9 @@
         <div class="flex gap-2 items-center max-w-5xl mx-auto">
             <input type="file" id="file-input" class="hidden" accept="image/*,.pdf,.doc,.docx,.ppt,.pptx">
             <button onclick="document.getElementById('file-input').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 active:scale-95 transition-all">
-                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8m4-4v12" /></svg>
+                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             </button>
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white text-sm outline-none" placeholder="輸入訊息，AI 會記住重要內容...">
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white text-sm outline-none" placeholder="輸入指令，AI 會記住重要事實...">
             <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black uppercase italic shadow-lg active:scale-95 transition-all">Send</button>
         </div>
     </footer>
@@ -69,39 +64,28 @@
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
 
-        // ✨ 固化使用者 ID (長期記憶核心)
+        // ✨ 固化使用者 ID
         const sessId = (function() {
             let id = localStorage.getItem('ANYGEM_USER_ID');
             if (!id) {
-                id = "UID_" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                id = "USER_" + Math.random().toString(36).substr(2, 9).toUpperCase();
                 localStorage.setItem('ANYGEM_USER_ID', id);
             }
             return id;
         })();
 
         const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptPanel = document.getElementById('ppt-config-panel'), previewBar = document.getElementById('file-preview-bar');
-        
         let activeFile = null;
 
-        function updateUI() {
-            modeSelect.value === 'presentation' ? pptPanel.classList.add('active') : pptPanel.classList.remove('active');
-        }
+        function updateUI() { modeSelect.value === 'presentation' ? pptPanel.classList.add('active') : pptPanel.classList.remove('active'); }
 
         document.getElementById('file-input').onchange = async (e) => {
             const file = e.target.files[0];
             if(!file) return;
-            setLoading(true, "Optimizing...");
-            activeFile = file.type.startsWith('image/') ? await compressImage(file) : file;
+            activeFile = file;
             previewBar.classList.remove('hidden');
             document.getElementById('file-name-label').innerText = file.name;
-            const thumb = document.getElementById('file-thumb');
-            if(file.type.startsWith('image/')) {
-                const url = URL.createObjectURL(file);
-                thumb.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-lg">`;
-            } else {
-                thumb.innerHTML = file.name.includes('pdf') ? '📕' : (file.name.match(/\.(ppt|pptx)$/) ? '📙' : '📘');
-            }
-            setLoading(false);
+            document.getElementById('file-thumb').innerText = file.type.startsWith('image/') ? '🖼️' : (file.name.includes('pdf') ? '📕' : '📄');
         };
 
         function clearFile() { activeFile = null; document.getElementById('file-input').value = ''; previewBar.classList.add('hidden'); }
@@ -109,82 +93,38 @@
         async function handleSend() {
             const text = input.value.trim();
             if(!text && !activeFile) return;
-
             addMessage('user', text, { fileName: activeFile?.name });
-            const payload = { 
-                message: text, session_id: sessId, mode: modeSelect.value,
-                options: { strategy: document.getElementById('ppt-strategy').value, style: document.getElementById('ppt-style').value }
-            };
-
+            const payload = { message: text, session_id: sessId, mode: modeSelect.value, options: { strategy: document.getElementById('ppt-strategy').value, style: document.getElementById('ppt-style').value } };
             const tempFile = activeFile;
-            input.value = '';
-            clearFile();
-
-            if(tempFile) {
-                setLoading(true, "Encoding...");
-                payload.file_data = (await toBase64(tempFile)).split(',')[1];
-                payload.mime_type = tempFile.type;
-            }
-
+            input.value = ''; clearFile();
+            if(tempFile) { payload.file_data = (await toBase64(tempFile)).split(',')[1]; payload.mime_type = tempFile.type; }
             setLoading(true, "AI Analyzing...");
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const data = await res.json();
-                if(data.status === "success") {
-                    addMessage('ai', data.reply, { model: data.model, image: data.image, mime: data.mime });
-                } else { addMessage('ai', "🚨 錯誤: " + data.error); }
-            } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
+                if(data.status === "success") addMessage('ai', data.reply, { model: data.model, image: data.image, mime: data.mime });
+                else addMessage('ai', "🚨 伺服器錯誤: " + data.error);
+            } catch (e) { addMessage('ai', "❌ 連線失敗：請確保 GAS 部署為「所有人」存取。"); } finally { setLoading(false); }
         }
 
         function addMessage(role, text, meta = null) {
             const wrapper = document.createElement('div');
-            wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in mb-6 group`;
+            wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in mb-6`;
             const msgBox = document.createElement('div');
-            msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} shadow-xl relative prose prose-invert prose-sm`;
-            
-            if(role === 'user' && meta?.fileName) {
-                const badge = document.createElement('div');
-                badge.className = "mb-2 p-2 bg-black/20 rounded-lg flex items-center gap-2 text-[10px] font-mono border border-white/5";
-                badge.innerHTML = `<span>📄</span> <span class="truncate">${meta.fileName}</span>`;
-                msgBox.appendChild(badge);
+            msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} shadow-xl prose prose-invert prose-sm`;
+            if(meta?.fileName) {
+                const b = document.createElement('div'); b.className = "mb-2 p-2 bg-black/20 rounded-lg text-[10px]"; b.innerText = `📎 Attached: ${meta.fileName}`; msgBox.appendChild(b);
             }
-
             if(meta?.image) {
-                const img = document.createElement('img');
-                img.src = `data:${meta.mime || 'image/png'};base64,${meta.image}`;
-                img.className = "w-full rounded-lg mb-3 shadow-lg border border-white/10";
-                msgBox.appendChild(img);
+                const img = document.createElement('img'); img.src = `data:${meta.mime || 'image/png'};base64,${meta.image}`; img.className = "w-full rounded-lg mb-3 shadow-lg"; msgBox.appendChild(img);
             }
-            if (text) {
-                const tNode = document.createElement('div'); tNode.innerHTML = marked.parse(text); msgBox.appendChild(tNode);
-                if (role === 'ai') {
-                    const cBtn = document.createElement('button');
-                    cBtn.className = "mt-4 text-[10px] bg-white/5 hover:bg-emerald-600 px-3 py-1 rounded-lg transition-all";
-                    cBtn.innerText = "📋 Copy Text";
-                    cBtn.onclick = () => { navigator.clipboard.writeText(text); cBtn.innerText = "✅ Done!"; setTimeout(()=>cBtn.innerText="📋 Copy Text", 2000); };
-                    msgBox.appendChild(cBtn);
-                }
-            }
+            if (text) { const t = document.createElement('div'); t.innerHTML = marked.parse(text); msgBox.appendChild(t); }
             chatWindow.appendChild(wrapper); wrapper.appendChild(msgBox); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
         function toBase64(f) { return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); }); }
-        function compressImage(f) {
-            return new Promise(resolve => {
-                const img = new Image(); img.src = URL.createObjectURL(f);
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height, max = 1200;
-                    if(w > h && w > max) { h *= max/w; w = max; } else if(h > max) { w *= max/h; h = max; }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    canvas.toBlob(blob => resolve(new File([blob], f.name, {type: 'image/jpeg'})), 'image/jpeg', 0.85);
-                };
-            });
-        }
-        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] font-black animate-pulse p-2'; d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { document.getElementById('loader')?.remove(); } }
+        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] p-2'; d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { document.getElementById('loader')?.remove(); } }
         updateUI();
     </script>
 </body>
 </html>
-
