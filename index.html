@@ -1,73 +1,47 @@
-<script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-    const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptSettings = document.getElementById('ppt-settings');
-    let chatHistory = [];
-    let activeFile = { base64: null, mime: null };
-
-    async function handleSend() {
-        const text = input.value.trim();
-        if(!text && !activeFile.base64) return;
-        
-        addMessage('user', text);
-        input.value = '';
-        const m = modeSelect.value;
-        setLoading(true, m === 'art' ? "Creating Art..." : "Thinking...");
-
-        try {
-            const res = await fetch(GAS_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({ 
-                    message: text, 
-                    mode: m, 
-                    history: chatHistory.slice(-6), 
-                    imageBase64: activeFile.base64, 
-                    mimeType: activeFile.mime, 
-                    options: m === 'presentation' ? { strategy: document.getElementById('ppt-strategy').value, theme: document.getElementById('ppt-theme').value, customStyle: document.getElementById('ppt-custom-style').value } : null 
-                }) 
-            });
-            const data = await res.json();
-            activeFile = { base64: null, mime: null };
-
-            if(data.status === "success") {
-                // ✨ 修正點：同時檢查 type 與 image 欄位
-                if(data.type === 'art' || data.image) {
-                    renderArtCard(data.image, data.reply || text);
-                } else {
-                    addMessage('ai', data.reply, { docUrl: data.docUrl });
-                    chatHistory.push({ role: 'user', content: text }, { role: 'model', content: data.reply });
-                }
-            } else {
-                addMessage('ai', "🚨 系統訊息: " + data.error);
-            }
-        } catch (e) {
-            addMessage('ai', "❌ 連線失敗");
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    function renderArtCard(base64, prompt) {
-        const w = document.createElement('div'); w.className = "flex justify-start animate-fade-in mb-6 group";
-        const m = document.createElement('div'); m.className = "max-w-[85%] p-2 rounded-3xl bg-[#1e293b] border border-pink-500/20 shadow-2xl overflow-hidden";
-        m.innerHTML = `<img src="data:image/png;base64,${base64}" class="w-full rounded-2xl mb-2 shadow-lg"><div class="px-3 pb-2"><p class="text-[10px] text-pink-400 font-bold mb-1 uppercase tracking-widest">Art Engine Output</p><p class="text-xs text-slate-400 italic leading-tight mb-3">${prompt}</p><a href="data:image/png;base64,${base64}" download="anyGem_Art.png" class="block text-center bg-pink-600 hover:bg-pink-500 text-white text-[10px] font-bold py-2 rounded-xl transition-all shadow-lg active:scale-95">Download PNG</a></div>`;
-        chatWindow.appendChild(w);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    function addMessage(role, text, meta = null) {
-        const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in mb-6 group`;
-        const m = document.createElement('div'); m.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} shadow-xl relative`;
-        if(meta && meta.docUrl) m.innerHTML = `<a href="${meta.docUrl}" target="_blank" class="block bg-indigo-600 p-3 rounded-xl mb-3 font-bold text-center shadow-lg active:scale-95 transition-all">📂 開啟產出文件 / 簡報</a>`;
-        const contentDiv = document.createElement('div'); contentDiv.className = "prose prose-invert prose-sm"; contentDiv.innerHTML = marked.parse(text || ""); m.appendChild(contentDiv);
-        w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
-    }
-
-    function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] font-black animate-pulse p-4'; d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); chatWindow.scrollTop = chatWindow.scrollHeight; } else { document.getElementById('loader')?.remove(); } }
+/* 替換 script 中的 handleSend 函式 */
+async function handleSend() {
+    const text = input.value.trim();
+    if(!text && !activeFile.base64) return;
     
-    function updateModeUI() {
-        const themes = { chat: "bg-emerald-600", art: "bg-pink-600", report: "bg-blue-600", presentation: "bg-orange-600", calendar: "bg-fuchsia-600" };
-        btn.className = `${themes[modeSelect.value] || "bg-emerald-600"} text-white px-6 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase italic`;
-        modeSelect.value === 'presentation' ? pptSettings.classList.add('open') : pptSettings.classList.remove('open');
+    addMessage('user', text);
+    input.value = ''; zenInput.value = '';
+    
+    const m = modeSelect.value;
+    setLoading(true, m === 'art' ? "Creating Art..." : "Thinking...");
+
+    try {
+        const res = await fetch(GAS_URL, { 
+            method: 'POST', 
+            body: JSON.stringify({ 
+                message: text, 
+                mode: m, 
+                history: chatHistory.slice(-6), 
+                imageBase64: activeFile.base64, 
+                mimeType: activeFile.mime, 
+                options: m === 'presentation' ? { strategy: document.getElementById('ppt-strategy').value, theme: document.getElementById('ppt-theme').value, customStyle: document.getElementById('ppt-custom-style').value } : null 
+            }) 
+        });
+        
+        const data = await res.json();
+        console.log("Backend Response:", data); // ✨ 開啟 F12 即可看到調試資訊
+        
+        activeFile = { base64: null, mime: null };
+
+        if(data.status === "success") {
+            // ✨ 判定生圖類型
+            if(data.type === 'art' || data.image) {
+                renderArtCard(data.image, data.reply || text);
+            } else {
+                addMessage('ai', data.reply, { docUrl: data.docUrl });
+                chatHistory.push({ role: 'user', content: text }, { role: 'model', content: data.reply });
+            }
+        } else {
+            addMessage('ai', "🚨 錯誤詳情: " + data.error);
+        }
+    } catch (e) {
+        console.error("Fetch Error:", e);
+        addMessage('ai', "❌ 連線失敗，請檢查網路或後端部署網址。");
+    } finally {
+        setLoading(false);
     }
-    updateModeUI();
-</script>
+}
