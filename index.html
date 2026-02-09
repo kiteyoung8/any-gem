@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v39.2 : Visual Feedback</title>
+    <title>anyGem v39.2 : Multimodal Ready</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .animate-pop-in { animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
         #ppt-config-panel { transition: all 0.3s ease; max-height: 0; opacity: 0; overflow: hidden; }
         #ppt-config-panel.active { max-height: 300px; opacity: 1; margin-top: 1rem; }
+        /* 檔案預覽小圖 */
+        #upload-preview { max-width: 60px; max-height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #10b981; }
     </style>
 </head>
 <body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden">
@@ -21,40 +23,30 @@
         <div class="flex justify-between items-center">
             <div class="flex flex-col">
                 <span class="text-lg font-black text-white italic tracking-tighter uppercase">anyGem <span class="text-emerald-500">v39.2</span></span>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Visual Recognition Active</span>
+                <span class="text-[8px] text-emerald-400 font-mono tracking-widest uppercase opacity-70">Vision System Online</span>
             </div>
             <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold cursor-pointer">
                 <option value="chat">💬 高速對話</option>
+                <option value="search">🌍 深度研究</option>
                 <option value="drawing">🎨 藝術生圖</option>
                 <option value="presentation">📊 智能簡報</option>
             </select>
         </div>
-        <div id="ppt-config-panel">
-            <div class="bg-emerald-900/10 border border-emerald-500/20 rounded-2xl p-4 mt-2 space-y-3">
-                <select id="ppt-strategy" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full outline-none">
-                    <option value="hybrid" selected>🌓 混合式設計</option>
-                    <option value="native">🌿 原生幾何版面</option>
-                    <option value="ai">✨ 純 AI 生圖設計</option>
-                </select>
-                <input type="text" id="ppt-style" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full outline-none" placeholder="自定義簡報風格描述...">
-            </div>
+        <div id="ppt-config-panel" class="bg-emerald-900/10 border border-emerald-500/20 rounded-2xl p-4 space-y-3">
+             <select id="ppt-strategy" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full outline-none"><option value="hybrid">🌓 混合式設計</option></select>
+             <input type="text" id="ppt-style" class="bg-slate-800 text-white text-xs p-2 rounded-lg w-full outline-none" placeholder="自定義風格...">
         </div>
     </header>
 
     <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 scroll-smooth bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.05),transparent)]"></main>
 
-    <div id="file-status" class="hidden px-4 py-3 bg-[#0f172a] border-t border-emerald-900/30 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="relative w-12 h-12 rounded-lg overflow-hidden border border-emerald-500/30 shadow-lg">
-                <img id="upload-preview" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-emerald-500/10 animate-pulse"></div>
-            </div>
-            <div class="flex flex-col">
-                <span id="filename-display" class="text-xs font-bold text-white truncate max-w-[150px]"></span>
-                <span class="text-[10px] text-emerald-500 uppercase font-black">Ready to Analyze</span>
-            </div>
+    <div id="upload-status" class="hidden px-4 py-3 bg-emerald-900/20 border-t border-emerald-500/20 flex items-center gap-4 animate-fade-in">
+        <img id="upload-preview" src="" alt="縮圖">
+        <div class="flex flex-col flex-grow">
+            <span id="filename-display" class="text-xs font-bold text-white truncate max-w-[200px]"></span>
+            <span class="text-[9px] text-emerald-400 uppercase font-mono">Ready to upload</span>
         </div>
-        <button onclick="clearFile()" class="bg-slate-800 p-2 rounded-full text-slate-400 hover:text-white transition-colors text-xs">✕</button>
+        <button onclick="clearFile()" class="p-2 text-slate-500 hover:text-white transition-all">✕</button>
     </div>
 
     <footer class="p-3 bg-[#0f172a] border-t border-emerald-900/30 pb-8 md:pb-4 z-50">
@@ -63,123 +55,92 @@
             <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 active:scale-95 transition-all">
                 <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             </button>
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-500/50" placeholder="輸入指令或上傳圖片...">
+            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/5 rounded-2xl px-5 py-4 text-white text-sm outline-none focus:border-emerald-500/50" placeholder="輸入訊息或指令...">
             <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black uppercase italic active:scale-95 transition-all">Send</button>
         </div>
     </footer>
 
     <script>
-        const GAS_URL = "你的_GAS_網址";
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptPanel = document.getElementById('ppt-config-panel'), fileStatus = document.getElementById('file-status'), previewImg = document.getElementById('upload-preview'), sessId = "CLIP_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const GAS_URL = "您的_GAS_URL";
+        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptPanel = document.getElementById('ppt-config-panel'), uploadStatus = document.getElementById('upload-status'), uploadPreview = document.getElementById('upload-preview'), sessId = "CLIP_" + Math.random().toString(36).substr(2, 6).toUpperCase();
         
-        let activeFileData = null;
+        let activeFile = null;
 
-        function updateModeUI() {
-            const m = modeSelect.value;
-            btn.className = `${m === 'drawing' ? 'bg-pink-600' : 'bg-emerald-600'} text-white px-6 py-4 rounded-2xl font-black uppercase italic active:scale-95 transition-all`;
-            m === 'presentation' ? pptPanel.classList.add('active') : pptPanel.classList.remove('active');
-        }
-
-        // 🖼️ 處理檔案選取、預覽與壓縮
-        document.getElementById('file-upload').onchange = async (e) => {
+        // 🖼️ 監聽檔案上傳
+        document.getElementById('file-upload').onchange = (e) => {
             const file = e.target.files[0];
-            if(!file) return;
-            
-            setLoading(true, "Processing Preview...");
-            
-            // 顯示即時預覽縮圖
-            const objectURL = URL.createObjectURL(file);
-            previewImg.src = objectURL;
-            document.getElementById('filename-display').innerText = file.name;
-            fileStatus.classList.remove('hidden');
-            
-            // 背景壓縮處理
-            activeFileData = await compressImage(file);
-            setLoading(false);
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    activeFile = { base64: evt.target.result.split(',')[1], mime: file.type, name: file.name };
+                    uploadPreview.src = evt.target.result;
+                    document.getElementById('filename-display').innerText = file.name;
+                    uploadStatus.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
         };
 
         function clearFile() {
-            activeFileData = null;
-            fileStatus.classList.add('hidden');
-            document.getElementById('file-upload').value = "";
+            activeFile = null;
+            uploadStatus.classList.add('hidden');
+            document.getElementById('file-upload').value = '';
         }
 
         async function handleSend() {
             const text = input.value.trim();
-            if(!text && !activeFileData) return;
-            
-            // 發送時呈現縮圖於使用者氣泡
-            addMessage('user', text || "[Image Data]", { image: activeFileData ? activeFileData.base64 : null });
-            
+            if(!text && !activeFile) return;
+
+            // 呈現使用者訊息 (含上傳的圖片)
+            addMessage('user', text, { image: activeFile?.base64, mime: activeFile?.mime });
+
             const payload = { 
                 message: text, session_id: sessId, mode: modeSelect.value,
+                file_data: activeFile?.base64,
+                mime_type: activeFile?.mime,
                 options: { strategy: document.getElementById('ppt-strategy').value, style: document.getElementById('ppt-style').value }
             };
-            
-            if(activeFileData) {
-                payload.file_data = activeFileData.base64;
-                payload.mime_type = activeFileData.type;
-                clearFile();
-            }
 
             input.value = '';
+            clearFile();
             setLoading(true, "AI Analyzing...");
+
             try {
                 const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const data = await res.json();
                 if(data.status === "success") {
                     addMessage('ai', data.reply, { model: data.model, image: data.image, mime: data.mime });
-                } else { addMessage('ai', "🚨 Error: " + data.error); }
+                } else { addMessage('ai', "🚨 錯誤: " + data.error); }
             } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
         }
 
         function addMessage(role, text, meta = null) {
             const wrapper = document.createElement('div');
             wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in mb-6 group`;
-            
             const msgBox = document.createElement('div');
-            msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white shadow-emerald-900/20' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} shadow-2xl relative animate-pop-in`;
-
-            // ✨ 如果有圖片 (不論是使用者發送的預覽或是 AI 生成的結果)
+            msgBox.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-[#1e293b] text-slate-200 border border-emerald-500/10'} shadow-xl relative prose prose-invert prose-sm`;
+            
+            // 呈現圖片 (不論是使用者上傳還是 AI 生成)
             if(meta && meta.image) {
                 const img = document.createElement('img');
                 img.src = `data:${meta.mime || 'image/png'};base64,${meta.image}`;
-                img.className = "w-full rounded-xl mb-3 shadow-lg border border-white/5";
+                img.className = "w-full rounded-lg mb-3 shadow-lg border border-white/10";
                 msgBox.appendChild(img);
             }
 
             if (text) {
                 const tNode = document.createElement('div');
-                tNode.className = "prose prose-invert prose-sm leading-relaxed";
                 tNode.innerHTML = marked.parse(text);
                 msgBox.appendChild(tNode);
             }
             chatWindow.appendChild(wrapper); wrapper.appendChild(msgBox); chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        function compressImage(file) {
-            return new Promise(resolve => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let w = img.width, h = img.height;
-                        const max = 1000;
-                        if (w > h && w > max) { h *= max / w; w = max; }
-                        else if (h > max) { w *= max / h; h = max; }
-                        canvas.width = w; canvas.height = h;
-                        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                        const b64 = canvas.toDataURL('image/jpeg', 0.85);
-                        resolve({ base64: b64.split(',')[1], type: 'image/jpeg' });
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            });
+        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] font-black animate-pulse p-2'; d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); } else { document.getElementById('loader')?.remove(); } }
+        function updateModeUI() {
+            const m = modeSelect.value;
+            m === 'presentation' ? pptPanel.classList.add('active') : pptPanel.classList.remove('active');
         }
-
-        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] font-black animate-pulse px-2 mb-2'; d.innerText=`⚡ ${t.toUpperCase()}`; chatWindow.appendChild(d); } else { document.getElementById('loader')?.remove(); } }
         updateModeUI();
     </script>
 </body>
