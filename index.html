@@ -1,124 +1,74 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>anyGem v36.6 : Zen Master</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
-        .prose pre { background: #1a1b26 !important; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
-        #zen-editor { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; transform: translateY(100%); opacity: 0; pointer-events: none; z-index: 100; }
-        #zen-editor.active { transform: translateY(0); opacity: 1; pointer-events: auto; }
-        #ppt-settings { transition: all 0.4s ease; max-height: 0; opacity: 0; overflow: hidden; }
-        #ppt-settings.open { max-height: 200px; opacity: 1; padding: 0.75rem; border-width: 1px; margin-top: 0.75rem; }
-    </style>
-</head>
-<body class="bg-[#020617] text-slate-300 h-screen flex flex-col font-sans overflow-hidden relative">
-
-    <header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex flex-col z-40">
-        <div class="flex justify-between items-center">
-            <div class="flex flex-col">
-                <span class="text-lg font-black text-white italic">anyGem <span class="text-emerald-500">v36.6</span></span>
-                <span class="text-[8px] text-emerald-400 font-mono tracking-widest">ZEN & SLIDE OPTIMIZED</span>
-            </div>
-            <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold">
-                <option value="chat">💬 高速對話</option>
-                <option value="report">📑 深度研報</option>
-                <option value="art">🎨 藝術生圖</option>
-                <option value="calendar">📅 日曆管家</option>
-                <option value="presentation">📊 智能簡報</option>
+<header class="p-4 border-b border-emerald-900/30 bg-[#0f172a] flex flex-col z-40">
+    <div class="flex justify-between items-center">
+        <div class="flex flex-col">
+            <span class="text-lg font-black text-white italic">anyGem <span class="text-emerald-500">v37.0</span></span>
+            <span class="text-[8px] text-emerald-400 font-mono tracking-widest">SLIDE ARCHITECT</span>
+        </div>
+        <select id="mode-select" onchange="updateModeUI()" class="bg-emerald-900/20 text-white text-xs py-2 px-3 rounded-xl border border-emerald-500/30 outline-none font-bold">
+            <option value="chat">💬 高速對話</option>
+            <option value="report">📑 深度研報</option>
+            <option value="art">🎨 藝術生圖</option>
+            <option value="calendar">📅 日曆管家</option>
+            <option value="presentation">📊 智能簡報</option>
+        </select>
+    </div>
+    
+    <div id="ppt-settings" class="bg-emerald-900/10 border-emerald-500/20 rounded-xl grid grid-cols-2 md:grid-cols-3 gap-4 text-xs mt-3">
+        <div class="flex flex-col gap-1">
+            <label class="text-emerald-400 font-bold text-[10px]">生成類別 (Strategy)</label>
+            <select id="ppt-strategy" class="bg-slate-800 text-white rounded p-1">
+                <option value="native">🌿 原生設計 (純工具生成)</option>
+                <option value="ai_art">✨ AI 生圖 (全背景渲染)</option>
+                <option value="hybrid" selected>🌓 混合模式 (生圖+原生)</option>
             </select>
         </div>
-        <div id="ppt-settings" class="bg-emerald-900/10 border-emerald-500/20 rounded-xl grid grid-cols-2 gap-4 text-xs"></div>
-    </header>
-
-    <main id="chat-window" class="flex-grow p-4 overflow-y-auto space-y-6 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.05),transparent)]"></main>
-
-    <div id="zen-editor" class="fixed inset-0 bg-[#0f172a]/95 backdrop-blur-xl flex flex-col p-6">
-        <div class="flex justify-between items-center mb-4">
-            <span class="text-emerald-400 font-black text-xs tracking-widest">ZEN MODE</span>
-            <button onclick="closeZenMode()" class="bg-emerald-600 text-white px-6 py-1 rounded-lg font-bold text-xs">套用並關閉</button>
+        <div class="flex flex-col gap-1">
+            <label class="text-emerald-400 font-bold text-[10px]">風格選項 (Theme)</label>
+            <select id="ppt-theme" class="bg-slate-800 text-white rounded p-1">
+                <option value="Professional">專業商務</option>
+                <option value="Cyberpunk">賽博龐克</option>
+                <option value="Warm">溫暖人文</option>
+                <option value="Custom">🖍️ 自定義風格...</option>
+            </select>
         </div>
-        <textarea id="zen-input" class="flex-grow bg-transparent text-slate-200 text-lg leading-relaxed outline-none resize-none font-mono" placeholder="在此處自由編輯..."></textarea>
+        <div id="custom-style-wrap" class="flex flex-col gap-1 hidden col-span-2 md:col-span-1">
+            <label class="text-emerald-400 font-bold text-[10px]">自定義描述</label>
+            <input type="text" id="ppt-custom-style" class="bg-slate-800 text-white rounded p-1 border border-white/10" placeholder="例如：極簡北歐風, 亮橘色調...">
+        </div>
     </div>
+</header>
 
-    <footer class="p-4 bg-[#0f172a] border-t border-emerald-900/30">
-        <div class="flex gap-2 items-center max-w-5xl mx-auto">
-            <input type="file" id="file-upload" class="hidden" accept="image/*">
-            <button onclick="document.getElementById('file-upload').click()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 border border-white/5 active:scale-95 transition-all">
-                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-            </button>
-            <button onclick="openZenMode()" class="bg-slate-800 p-4 rounded-2xl hover:bg-emerald-900/40 border border-white/5 active:scale-95 transition-all">
-                <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            </button>
-            <input type="text" id="user-input" class="w-full bg-[#1e293b] border border-white/10 rounded-2xl px-5 py-4 text-white text-sm outline-none" placeholder="輸入指令...">
-            <button onclick="handleSend()" id="send-btn" class="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black shadow-lg uppercase italic active:scale-95">Send</button>
-        </div>
-    </footer>
+<script>
+// 在 updateModeUI 中加入監聽
+function updateModeUI() {
+    const m = modeSelect.value;
+    const pptBox = document.getElementById('ppt-settings');
+    if (m === 'presentation') {
+        pptBox.classList.add('open');
+        // 監聽風格是否為自定義
+        document.getElementById('ppt-theme').onchange = (e) => {
+            const wrap = document.getElementById('custom-style-wrap');
+            e.target.value === 'Custom' ? wrap.classList.remove('hidden') : wrap.classList.add('hidden');
+        };
+    } else {
+        pptBox.classList.remove('open');
+    }
+}
 
-    <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzaQVmwMalKAfw0zUtBkdpdnHpuOOmIkKJHkKKms2cNTEIRDjJTsu0zpKzvUuiymj9u/exec";
-        const chatWindow = document.getElementById('chat-window'), input = document.getElementById('user-input'), btn = document.getElementById('send-btn'), modeSelect = document.getElementById('mode-select'), pptSettings = document.getElementById('ppt-settings'), zenEditor = document.getElementById('zen-editor'), zenInput = document.getElementById('zen-input');
-        
-        let activeFileBase64 = null, activeFileMime = null;
+// 在 handleSend 中獲取新的參數
+async function handleSend() {
+    const text = input.value.trim();
+    if(!text) return;
 
-        function updateModeUI() {
-            const m = modeSelect.value;
-            const themes = { chat: "bg-emerald-600", report: "bg-blue-600", art: "bg-pink-600", calendar: "bg-fuchsia-600", presentation: "bg-orange-600" };
-            btn.className = `${themes[m]} text-white px-6 py-4 rounded-2xl font-black active:scale-95 transition-all shadow-lg uppercase italic`;
-            
-            if (m === 'presentation') {
-                pptSettings.innerHTML = `<div class="flex flex-col gap-1"><label class="text-emerald-400 font-bold text-[10px]">Theme</label><select id="ppt-theme" class="bg-slate-800 text-white rounded p-1"><option value="Professional">專業商務</option><option value="Cyberpunk">賽博龐克</option><option value="Warm">溫暖人文</option></select></div><div class="flex flex-col gap-1"><label class="text-emerald-400 font-bold text-[10px]">Strategy</label><select id="ppt-visual" class="bg-slate-800 text-white rounded p-1"><option value="hybrid">混合設計</option><option value="geometric">幾何圖形</option></select></div>`;
-                pptSettings.classList.add('open');
-            } else { pptSettings.classList.remove('open'); }
-        }
-
-        function openZenMode() { zenInput.value = input.value; zenEditor.classList.add('active'); zenInput.focus(); }
-        function closeZenMode() { input.value = zenInput.value; zenEditor.classList.remove('active'); }
-
-        document.getElementById('file-upload').onchange = (e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (evt) => { activeFileBase64 = evt.target.result.split(',')[1]; activeFileMime = file.type; input.value = `[已選取檔案: ${file.name}]`; };
-            reader.readAsDataURL(file);
-        }
-
-        async function handleSend() {
-            const text = input.value.trim();
-            if(!text && !activeFileBase64) return;
-            addMessage('user', text); input.value = '';
-            setLoading(true, "AI Processing...");
-            
-            let extra = {};
-            if(modeSelect.value === 'presentation') { extra = { theme: document.getElementById('ppt-theme').value, visual: document.getElementById('ppt-visual').value }; }
-
-            try {
-                const res = await fetch(GAS_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify({ message: text, mode: modeSelect.value, imageBase64: activeFileBase64, mimeType: activeFileMime, options: extra }) 
-                });
-                const data = await res.json();
-                activeFileBase64 = null;
-                if(data.status === "success") addMessage('ai', data.reply, { docUrl: data.docUrl, model: data.model });
-                else addMessage('ai', "🚨 Error: " + data.error);
-            } catch (e) { addMessage('ai', "❌ 連線失敗"); } finally { setLoading(false); }
-        }
-
-        function addMessage(role, text, meta = null) {
-            const w = document.createElement('div'); w.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`;
-            const m = document.createElement('div'); m.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-emerald-700/80 text-white' : 'bg-slate-800 text-slate-200'} prose prose-invert prose-sm shadow-xl`;
-            if(meta && meta.docUrl) m.innerHTML = `<a href="${meta.docUrl}" target="_blank" class="block bg-indigo-600 p-2 rounded mb-2 font-bold text-center">📂 開啟產出文件</a>`;
-            m.innerHTML += marked.parse(text || "");
-            w.appendChild(m); chatWindow.appendChild(w); chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-
-        function setLoading(l, t) { btn.disabled = l; if(l){ const d = document.createElement('div'); d.id='loader'; d.className='text-emerald-500 text-[10px] animate-pulse p-2'; d.innerText=t; chatWindow.appendChild(d); } else { document.getElementById('loader')?.remove(); } }
-        updateModeUI();
-    </script>
-</body>
-</html>
+    let extra = {};
+    if(modeSelect.value === 'presentation') {
+        extra = {
+            strategy: document.getElementById('ppt-strategy').value,
+            theme: document.getElementById('ppt-theme').value,
+            customStyle: document.getElementById('ppt-custom-style').value
+        };
+    }
+    
+    // ... 後續 fetch 保持與之前相同 ...
+}
+</script>
