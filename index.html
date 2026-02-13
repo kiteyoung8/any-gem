@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>anyGem v60.4 Agentic</title>
+    <title>anyGem v60.4 智能代理人</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -10,22 +10,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif; overflow: hidden; }
         ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
         .markdown-body img { max-width: 100%; border-radius: 8px; margin: 10px 0; border: 1px solid #334155; }
         .markdown-body pre { background: #1e293b; padding: 12px; border-radius: 6px; overflow-x: auto; }
+        /* 增加中文閱讀舒適度 */
+        .msg-text { letter-spacing: 0.02em; line-height: 1.7; }
     </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
     const { useState, useEffect, useRef, useMemo } = React;
-    const API_URL = "https://script.google.com/macros/s/AKfycbwsng4RBCTX67my46U4fv7BhDYT0CIZt95dL7DNCFJTGUJLZFd_854vRGeUsQ1_BjG9/exec"; // ⚠️ 務必替換！
+    const API_URL = "https://script.google.com/macros/s/AKfycbwsng4RBCTX67my46U4fv7BhDYT0CIZt95dL7DNCFJTGUJLZFd_854vRGeUsQ1_BjG9/exec"; // ⚠️ 請務必確認此處已填入正確網址！
 
     const App = () => {
         const [mode, setMode] = useState('chat');
         const [input, setInput] = useState('');
-        const [msgs, setMsgs] = useState([{id:0, role:'ai', text:'👋 <b>anyGem v60.4</b> Ready. Select a mode to start.'}]);
+        const [msgs, setMsgs] = useState([{id:0, role:'ai', text:'👋 <b>anyGem v60.4</b> 準備就緒。<br>我是您的 AI 智能代理人，請選擇上方模式開始工作。'}]);
         const [loading, setLoading] = useState(false);
         const [file, setFile] = useState(null);
         const [sessId, setSessId] = useState(localStorage.getItem('AG_UID') || "UID_"+Date.now());
@@ -34,6 +36,15 @@
         const [sessions, setSessions] = useState([]);
         const [sidebarOpen, setSidebarOpen] = useState(false);
         const endRef = useRef(null);
+
+        // 模式對照表 (顯示名稱)
+        const MODE_NAMES = {
+            chat: '💬 智能助理',
+            search: '🌍 深度研究',
+            report: '📝 專業研報',
+            presentation: '📊 智能簡報',
+            drawing: '🎨 藝術生圖'
+        };
 
         useEffect(() => { localStorage.setItem('AG_UID', sessId); fetchHistory(); }, [sessId]);
         useEffect(() => endRef.current?.scrollIntoView({behavior:'smooth'}), [msgs]);
@@ -56,64 +67,138 @@
                     })
                 });
                 const data = await res.json();
-                setMsgs(p => [...p, { id:Date.now()+1, role:'ai', text: data.reply || "Error", meta:{ image: data.image, mime: data.mime } }]);
-                fetchHistory();
-            } catch(e) { setMsgs(p => [...p, { id:Date.now(), role:'system', text:"Connection Failed" }]); }
+                if(data.status === 'success') {
+                    setMsgs(p => [...p, { id:Date.now()+1, role:'ai', text: data.reply || "完成。", meta:{ image: data.image, mime: data.mime } }]);
+                    fetchHistory();
+                } else {
+                    setMsgs(p => [...p, { id:Date.now(), role:'system', text:`🚨 錯誤: ${data.error}` }]);
+                }
+            } catch(e) { setMsgs(p => [...p, { id:Date.now(), role:'system', text:"❌ 連線失敗 (請檢查網址)" }]); }
             setLoading(false); setFile(null);
         };
 
+        // 時間分組邏輯
+        const groupedSessions = useMemo(() => {
+            const today = new Date().toDateString();
+            const yesterday = new Date(new Date().setDate(new Date().getDate()-1)).toDateString();
+            const groups = { '今天': [], '昨天': [], '更早之前': [] };
+            sessions.forEach(s => {
+                const d = new Date(s.timestamp).toDateString();
+                if(d === today) groups['今天'].push(s);
+                else if(d === yesterday) groups['昨天'].push(s);
+                else groups['更早之前'].push(s);
+            });
+            return groups;
+        }, [sessions]);
+
         return (
             <div className="flex h-screen bg-slate-950 text-slate-200">
+                {/* 側邊欄 */}
                 <aside className={`fixed md:relative z-20 w-64 h-full bg-[#0f172a] border-r border-slate-800 transition-transform ${sidebarOpen?'translate-x-0':'-translate-x-full md:translate-x-0'} flex flex-col`}>
                     <div className="p-4 border-b border-slate-800 flex justify-between items-center">
-                        <span className="font-bold text-emerald-500">anyGem v60.4</span>
-                        <button onClick={newChat} className="bg-emerald-600 text-white px-3 py-1 rounded text-xs hover:bg-emerald-500">+ New</button>
+                        <span className="font-bold text-emerald-500 tracking-wider">anyGem v60.4</span>
+                        <button onClick={newChat} className="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs hover:bg-emerald-500 font-bold shadow-lg transition-all">+ 新對話</button>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-2">
-                        {sessions.map(s => <div key={s.id} onClick={()=>loadSession(s.id)} className={`p-2 mb-1 rounded cursor-pointer text-xs truncate ${s.id===sessId?'bg-slate-800 text-white':'text-slate-400 hover:bg-slate-900'}`}>{s.title||"Untitled"}</div>)}
+                    <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
+                        {Object.entries(groupedSessions).map(([label, list]) => list.length > 0 && (
+                            <div key={label} className="mb-4">
+                                <div className="text-[10px] text-slate-500 font-bold px-3 mb-2">{label}</div>
+                                {list.map(s => (
+                                    <div key={s.id} onClick={()=>loadSession(s.id)} className={`group flex items-center px-3 py-2 mb-1 rounded-lg cursor-pointer text-xs transition-all ${s.id===sessId?'bg-slate-800 text-white shadow-md border-l-2 border-emerald-500':'text-slate-400 hover:bg-slate-900 hover:text-slate-200'}`}>
+                                        <i className="far fa-message mr-2 opacity-50"></i>
+                                        <span className="truncate">{s.title||"未命名對話"}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
                     </div>
                 </aside>
+
+                {/* 主畫面 */}
                 <div className="flex-1 flex flex-col relative">
-                    <header className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-900/50 backdrop-blur">
-                        <div className="flex items-center gap-2">
-                            <button onClick={()=>setSidebarOpen(!sidebarOpen)} className="md:hidden text-slate-400"><i className="fas fa-bars"></i></button>
-                            {['chat','search','report','presentation','drawing'].map(m => <button key={m} onClick={()=>setMode(m)} className={`px-3 py-1 rounded capitalize text-sm transition ${mode===m?'bg-emerald-600 text-white':'text-slate-400 hover:text-white'}`}>{m}</button>)}
+                    <header className="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-900/50 backdrop-blur z-10">
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                            <button onClick={()=>setSidebarOpen(!sidebarOpen)} className="md:hidden text-slate-400 p-2"><i className="fas fa-bars"></i></button>
+                            {Object.entries(MODE_NAMES).map(([key, name]) => (
+                                <button key={key} onClick={()=>setMode(key)} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${mode===key?'bg-emerald-600 text-white shadow-lg shadow-emerald-900/20':'text-slate-400 hover:bg-slate-800 hover:text-white'}`}>
+                                    {name}
+                                </button>
+                            ))}
                         </div>
-                        <button onClick={()=>setShowPanel(!showPanel)} className="hidden lg:block text-slate-400 hover:text-white"><i className="fas fa-cog"></i></button>
+                        <button onClick={()=>setShowPanel(!showPanel)} className="hidden lg:block text-slate-400 hover:text-emerald-400 transition-colors p-2" title="設定面板"><i className="fas fa-sliders-h"></i></button>
                     </header>
+
                     <div className="flex-1 flex overflow-hidden">
-                        <div className="flex-1 flex flex-col">
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                        <div className="flex-1 flex flex-col bg-slate-950">
+                            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 custom-scrollbar">
                                 {msgs.map(m => (
-                                    <div key={m.id} className={`flex ${m.role==='user'?'justify-end':'justify-start'}`}>
-                                        <div className={`max-w-[85%] p-4 rounded-xl text-sm ${m.role==='user'?'bg-emerald-700':'bg-slate-800 border border-slate-700'}`}>
-                                            {m.meta?.fileName && <div className="text-xs opacity-50 mb-2">📎 {m.meta.fileName}</div>}
-                                            {m.meta?.image && <img src={`data:${m.meta.mime};base64,${m.meta.image}`} />}
+                                    <div key={m.id} className={`flex ${m.role==='user'?'justify-end':'justify-start'} animate-fade-in`}>
+                                        <div className={`max-w-[85%] md:max-w-[75%] p-4 rounded-2xl text-sm shadow-xl msg-text ${m.role==='user'?'bg-emerald-700 text-white rounded-tr-sm':'bg-slate-900 border border-slate-800 text-slate-300 rounded-tl-sm'}`}>
+                                            {m.meta?.fileName && <div className="text-xs bg-black/20 p-2 rounded mb-3 flex items-center gap-2"><i className="fas fa-file"></i> {m.meta.fileName}</div>}
+                                            {m.meta?.image && <img src={`data:${m.meta.mime};base64,${m.meta.image}`} className="shadow-lg mb-3" />}
                                             <div className="markdown-body" dangerouslySetInnerHTML={{__html:marked.parse(m.text||"")}} />
+                                            {m.role === 'ai' && <div className="mt-3 pt-2 border-t border-white/5 flex justify-between items-center">
+                                                <span className="text-[10px] opacity-50">{m.meta?.model || 'AI Agent'}</span>
+                                                <button onClick={()=>navigator.clipboard.writeText(m.text)} className="text-[10px] hover:text-emerald-400 opacity-50 hover:opacity-100 transition"><i className="fas fa-copy"></i> 複製</button>
+                                            </div>}
                                         </div>
                                     </div>
                                 ))}
-                                {loading && <div className="text-center text-xs text-slate-500 animate-pulse">AI is thinking...</div>}
+                                {loading && <div className="flex justify-start"><div className="bg-slate-900 p-3 rounded-2xl rounded-tl-sm text-xs text-emerald-500 animate-pulse flex items-center gap-2"><i className="fas fa-circle-notch fa-spin"></i> AI 正在思考中...</div></div>}
                                 <div ref={endRef} />
                             </div>
-                            <div className="p-4 bg-slate-900/80 border-t border-slate-800">
-                                {file && <div className="text-xs text-emerald-400 mb-2">📎 {file.name} <button onClick={()=>setFile(null)}>✕</button></div>}
-                                <div className="flex gap-2">
-                                    <button onClick={()=>document.getElementById('f').click()} className="p-2 text-slate-400 hover:text-white"><i className="fas fa-paperclip"></i></button>
+
+                            {/* 輸入區 */}
+                            <div className="p-4 bg-slate-900/90 border-t border-slate-800 backdrop-blur-md">
+                                {file && <div className="text-xs text-emerald-400 mb-2 flex items-center gap-2 bg-emerald-900/20 p-2 rounded w-fit animate-fade-in"><i className="fas fa-paperclip"></i> {file.name} <button onClick={()=>setFile(null)} className="hover:text-white ml-2">✕</button></div>}
+                                <div className="flex gap-2 items-end max-w-4xl mx-auto bg-slate-800/50 p-2 rounded-xl border border-slate-700 focus-within:border-emerald-500/50 transition-colors">
+                                    <button onClick={()=>document.getElementById('f').click()} className="p-3 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-700"><i className="fas fa-paperclip text-lg"></i></button>
                                     <input type="file" id="f" className="hidden" onChange={e=>setFile(e.target.files[0])} />
-                                    <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}} className="flex-1 bg-slate-800 rounded p-2 text-sm outline-none resize-none" rows="1" placeholder="Type a message..." />
-                                    <button onClick={send} disabled={loading} className="bg-emerald-600 text-white px-4 rounded hover:bg-emerald-500"><i className="fas fa-paper-plane"></i></button>
+                                    <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}} className="flex-1 bg-transparent text-slate-200 text-sm outline-none resize-none py-3 px-2 max-h-32 placeholder-slate-500" rows="1" placeholder={`在 ${MODE_NAMES[mode]} 模式下輸入...`} />
+                                    <button onClick={send} disabled={loading||(!input&&!file)} className="bg-emerald-600 text-white p-3 rounded-lg hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 transition-all shadow-lg"><i className="fas fa-paper-plane"></i></button>
                                 </div>
+                                <div className="text-center mt-2 text-[10px] text-slate-600">AI 內容僅供參考，請查核重要資訊。</div>
                             </div>
                         </div>
+
+                        {/* 右側設定面板 */}
                         {showPanel && mode === 'presentation' && (
-                            <div className="w-72 bg-slate-900 border-l border-slate-800 p-4 hidden lg:block">
-                                <h3 className="text-sm font-bold text-white mb-4">Presentation Settings</h3>
-                                <div className="space-y-4 text-xs">
-                                    <div><label className="block text-slate-400 mb-1">Mode</label><select value={pptOpts.ppt_mode} onChange={e=>setPptOpts({...pptOpts, ppt_mode:e.target.value})} className="w-full bg-slate-800 p-2 rounded text-white"><option value="hybrid">✨ Hybrid (Smart)</option><option value="geometric">📐 Geometric (Fast)</option><option value="ai_visual">🎨 Visual (Creative)</option></select></div>
-                                    <div><label className="block text-slate-400 mb-1">Theme</label><select value={pptOpts.theme} onChange={e=>setPptOpts({...pptOpts, theme:e.target.value})} className="w-full bg-slate-800 p-2 rounded text-white"><option value="modern_blue">Modern Blue</option><option value="warm_orange">Warm Orange</option><option value="forest_green">Forest Green</option><option value="dark_cyber">Dark Cyber</option></select></div>
-                                    <div><label className="block text-slate-400 mb-1">Slides: {pptOpts.length}</label><input type="range" min="3" max="20" value={pptOpts.length} onChange={e=>setPptOpts({...pptOpts, length:parseInt(e.target.value)})} className="w-full" /></div>
+                            <div className="w-80 bg-slate-900 border-l border-slate-800 p-6 hidden lg:flex flex-col animate-fade-in">
+                                <div className="flex items-center gap-2 mb-6 text-emerald-500"><i className="fas fa-sliders-h"></i><h3 className="font-bold text-sm">簡報引擎設定</h3></div>
+                                <div className="space-y-6 flex-1 text-xs">
+                                    <div className="space-y-2">
+                                        <label className="block text-slate-400 font-bold uppercase">生成模式</label>
+                                        <select value={pptOpts.ppt_mode} onChange={e=>setPptOpts({...pptOpts, ppt_mode:e.target.value})} className="w-full bg-slate-800 p-3 rounded-lg text-slate-200 border border-slate-700 focus:border-emerald-500 outline-none">
+                                            <option value="hybrid">✨ 智能混合 (推薦)</option>
+                                            <option value="geometric">📐 純幾何圖表 (快速)</option>
+                                            <option value="ai_visual">🎨 純 AI 視覺 (創意)</option>
+                                        </select>
+                                        <p className="text-[10px] text-slate-500">智能混合模式會自動根據內容選擇圖表或配圖。</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-slate-400 font-bold uppercase">配色主題</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {[
+                                                {v:'modern_blue', l:'🔵 科技藍'},
+                                                {v:'warm_orange', l:'🟠 溫暖橘'},
+                                                {v:'forest_green', l:'🟢 森林綠'},
+                                                {v:'dark_cyber', l:'⚫ 暗黑系'}
+                                            ].map(t => (
+                                                <button key={t.v} onClick={()=>setPptOpts({...pptOpts, theme:t.v})} className={`p-2 rounded border text-left transition-all ${pptOpts.theme===t.v?'bg-emerald-900/30 border-emerald-500 text-emerald-400':'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}>{t.l}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-slate-400 font-bold uppercase flex justify-between"><span>預計頁數</span> <span className="text-emerald-400">{pptOpts.length} 頁</span></label>
+                                        <input type="range" min="3" max="20" value={pptOpts.length} onChange={e=>setPptOpts({...pptOpts, length:parseInt(e.target.value)})} className="w-full accent-emerald-500 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer" />
+                                    </div>
                                 </div>
+                            </div>
+                        )}
+                        {showPanel && mode === 'report' && (
+                             <div className="w-80 bg-slate-900 border-l border-slate-800 p-6 hidden lg:flex flex-col animate-fade-in">
+                                <div className="flex items-center gap-2 mb-6 text-blue-400"><i className="fas fa-file-contract"></i><h3 className="font-bold text-sm">研報設定</h3></div>
+                                <p className="text-xs text-slate-400 mb-4">系統將自動撰寫長篇報告並生成 Google Doc 連結。</p>
                             </div>
                         )}
                     </div>
